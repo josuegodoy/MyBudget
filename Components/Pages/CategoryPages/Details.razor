@@ -1,0 +1,61 @@
+﻿@page "/categories/details"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Categories</PageTitle>
+
+<h1 class="pt-3">Categories</h1>
+
+<div>
+    <hr />
+    @if (category is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudAvatar Color="Color.Primary" Variant="Variant.Outlined">
+                        <MudIcon Icon=@(category.Icon) Size="Size.Medium" />
+                    </MudAvatar>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.body1">@category.Name</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudTooltip Text="Back to List">
+                        <MudIconButton Href="@($"categories")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                    </MudTooltip>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="@($"categories/edit?id={@category.Id}")" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                <MudButton Href="@($"categories/delete?id={@category.Id}")" Variant="Variant.Filled" Color="Color.Secondary">Delete</MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
+</div>
+
+@code {
+    private Category? category;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        category = await context.Category.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (category is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

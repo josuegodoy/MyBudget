@@ -1,0 +1,102 @@
+﻿@page "/records/create"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject ISnackbar SnackbarService
+
+<PageTitle>Create Record</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Record</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Record" OnValidSubmit="AddRecord" FormName="create" Enhance>
+            <MudGrid>
+                <MudItem xs="12" sm="7">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Name" @bind-Value="Record.Name" />
+                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.Date" Placeholder="Select Date" />
+                            <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
+                                <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
+                                @foreach (var category in categories)
+                                {
+                                    <MudSelectItem T="Int32" Value="@category.Id">@category.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudRadioGroup @bind-Value="Record.Type">
+                                <MudRadio Value="@("Income")">Income</MudRadio>
+                                <MudRadio Value="@("Expense")">Expense</MudRadio>
+                            </MudRadioGroup>
+                            <MudSelect T="Int32" Label="Account" @bind-Value="Record.FromAccountId">
+                                <MudSelectItem T="int" Value="0" Disabled>Select Account</MudSelectItem>
+                                @foreach (var account in accounts)
+                                {
+                                    <MudSelectItem T="Int32" Value="@account.Id">@account.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudNumericField Label="Amount" @bind-Value="Record.Amount" />
+                            <MudTextField Label="Description" @bind-Value="Record.Description" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/records">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Record Record { get; set; } = new() { CategoryId = -1 };
+    private List<Category> categories = new List<Category>();
+    private List<Account> accounts = new List<Account>();
+    private List<User> users = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        categories = await context.Category.ToListAsync();
+        accounts = await context.Account.ToListAsync();
+        users = await context.User.ToListAsync();
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddRecord()
+    {
+        if (Record.CategoryId == -1)
+        {
+            SnackbarService.Add
+            (
+            @<div>No category selected</div>, Severity.Info
+            );
+            return;
+        }
+
+        if (Record.ToAccountId == -1)
+        {
+            Record.ToAccountId = 0;
+        }
+
+        using var context = DbFactory.CreateDbContext();
+        context.Record.Add(Record);
+        var account = await context.Account.FindAsync(Record.FromAccountId);
+        if (account != null)
+        {
+            account.CurrentBalance += Record.Type == "Income"
+                ? Record.Amount // Incrementa para receitas
+                : -Record.Amount; // Decrementa para despesas
+        }
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/records");
+    }
+}

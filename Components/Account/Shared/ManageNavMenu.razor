@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using MyBudget.Data
+
+@inject SignInManager<IdentityUser> SignInManager
+
+<MudButton Variant="Variant.Text"
+           EndIcon="@Icons.Material.Outlined.Person2"
+           Color="Color.Primary"
+           href="Account/Manage"
+           Match="NavLinkMatch.All">Profile</MudButton>
+<MudButton Variant="Variant.Text"
+           EndIcon="@Icons.Material.Outlined.Email"
+           Color="Color.Primary"
+           href="Account/Manage/Email">Email</MudButton>
+<MudButton Variant="Variant.Text"
+           EndIcon="@Icons.Material.Outlined.Key"
+           Color="Color.Primary"
+           href="Account/Manage/ChangePassword">Password</MudButton>
+@if (hasExternalLogins)
+{
+    <MudButton Target="_blank"
+               Variant="Variant.Text"
+               EndIcon="@Icons.Material.Outlined.CheckBox"
+               Color="Color.Primary"
+               href="Account/Manage/ExternalLogins">External logins</MudButton>
+}
+<MudButton Variant="Variant.Text"
+           EndIcon="@Icons.Material.Outlined.CheckBox"
+           Color="Color.Primary"
+           href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</MudButton>
+<MudButton Variant="Variant.Text"
+           Color="Color.Primary"
+           href="Account/Manage/PersonalData">Personal data</MudButton>
+
+@code {
+    private bool hasExternalLogins;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+}

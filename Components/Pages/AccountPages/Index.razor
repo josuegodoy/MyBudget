@@ -1,0 +1,52 @@
+﻿@page "/accounts"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@using MyBudget.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+
+<PageTitle>Accounts</PageTitle>
+
+<h1 class="pt-3">Accounts</h1>
+
+
+<MudDataGrid Items="context.Account" Dense="true" Hover="true" Bordered="true"  Style="--mud-palette-surface: transparent">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudIconButton Variant="Variant.Filled" href="accounts/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="account => account.Name" Title="Name" />
+        <PropertyColumn Property="account => account.InitialBalance" Title="Initial Balance" Format="C" />
+        <PropertyColumn Property="account => account.CurrentBalance" Title="Current Balance" Format="C" />
+             <TemplateColumn Title="Color">
+            <CellTemplate>
+                <MudChip T="string" Style="@($"background-color:{@context.Item.Color};")" Color="Color.Dark">@context.Item.Name</MudChip>
+            </CellTemplate>
+            
+
+        </TemplateColumn>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Href="@($"accounts/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                <MudIconButton Href="@($"accounts/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary"
+                           Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private MyBudgetContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+
+}

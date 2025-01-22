@@ -1,0 +1,140 @@
+﻿@page "/records/edit"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Record</h2>
+<hr />
+@if (updatedRecord is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="updatedRecord" OnValidSubmit="UpdateRecord" FormName="edit" Enhance>
+                <MudGrid>
+                    <MudItem xs="12" sm="7">
+                        <MudCard>
+                            <MudCardContent>
+                                <input type="hidden" name="Record.Id" value="updatedRecord.Id" />
+                                <MudTextField Label="Name" @bind-Value="updatedRecord.Name" />
+                                <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="updatedRecord.Date" Placeholder="Select Date" />
+                                <MudSelect T="int" Label="Category" @bind-Value="updatedRecord.CategoryId">
+                                    @foreach (var category in categories)
+                                    {
+                                        <MudSelectItem T="int" Value="@category.Id">@category.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudRadioGroup @bind-Value="updatedRecord.Type">
+                                    <MudRadio Value="@("Income")">Income</MudRadio>
+                                    <MudRadio Value="@("Expense")">Expense</MudRadio>
+                                </MudRadioGroup>
+                                <MudNumericField Label="Amount" Variant="Variant.Text" AdornmentColor="Color.Error" @bind-Value="updatedRecord.Amount" />
+                                <MudTextField Label="Description" @bind-Value="updatedRecord.Description" />
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/records">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    private Record updatedRecord = new();
+    private List<Category> categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        updatedRecord = await context.Record.FirstOrDefaultAsync(m => m.Id == Id) ?? new Record();
+        categories = await context.Category.ToListAsync();
+
+        if (updatedRecord is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+   
+    private async Task UpdateRecord()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        // Obter o registro original
+        var originalRecord = await context.Record
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == updatedRecord.Id);
+
+        if (originalRecord == null)
+        {
+            Console.WriteLine("Record not found.");
+            return;
+        }
+
+        // Reverta o impacto do registro original
+        if (originalRecord.ToAccountId != updatedRecord.ToAccountId)
+        {
+            // Atualize a conta original
+            var originalAccount = await context.Account.FindAsync(originalRecord.ToAccountId);
+            if (originalAccount != null)
+            {
+                originalAccount.CurrentBalance += originalRecord.Type == "Income"
+                    ? -originalRecord.Amount
+                    : originalRecord.Amount;
+            }
+
+            // Atualize a nova conta
+            var newAccount = await context.Account.FindAsync(updatedRecord.ToAccountId);
+            if (newAccount != null)
+            {
+                newAccount.CurrentBalance += updatedRecord.Type == "Income"
+                    ? updatedRecord.Amount
+                    : -updatedRecord.Amount;
+            }
+        }
+        else
+        {
+            // Atualize a conta atual
+            var account = await context.Account.FindAsync(updatedRecord.ToAccountId);
+            if (account != null)
+            {
+                // Reverta o impacto do registro original
+                account.CurrentBalance += originalRecord.Type == "Income"
+                    ? -originalRecord.Amount
+                    : originalRecord.Amount;
+
+                // Aplique o impacto do registro atualizado
+                account.CurrentBalance += updatedRecord.Type == "Income"
+                    ? updatedRecord.Amount
+                    : -updatedRecord.Amount;
+            }
+        }
+
+        // Atualizar o registro no banco de dados
+        context.Record.Update(updatedRecord);
+        await context.SaveChangesAsync();
+
+        // Redirecionar ou exibir feedback
+        NavigationManager.NavigateTo("/records");
+    }
+}

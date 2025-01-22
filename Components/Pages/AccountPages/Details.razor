@@ -1,0 +1,58 @@
+﻿@page "/accounts/details"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Accounts</PageTitle>
+
+<h1 class="pt-3">Accounts</h1>
+
+<div>
+    <hr />
+    @if (account is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudChip T="string" Style="@($"background-color:{@account.Color};")">@account.Name</MudChip>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudTooltip Text="Back to List">
+                        <MudIconButton Href="@($"accounts")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                    </MudTooltip>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudChip T="string">R$ @account.CurrentBalance</MudChip>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="@($"accounts/edit?id={@account.Id}")" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton> 
+                <MudButton Href="@($"accounts/delete?id={@account.Id}")" Variant="Variant.Filled" Color="Color.Secondary">Delete</MudButton> 
+            </MudCardActions>
+        </MudCard>
+    }
+</div>
+
+@code {
+    private Account? account;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        account = await context.Account.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (account is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

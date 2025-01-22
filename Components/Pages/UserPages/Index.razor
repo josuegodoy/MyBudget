@@ -1,0 +1,43 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@using MyBudget.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+
+<PageTitle>Users</PageTitle>
+
+<h1 class="pt-3">Users</h1>
+
+<MudDataGrid Items="context.User" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudIconButton Variant="Variant.Filled" href="users/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+    </ToolBarContent>
+    <Columns>
+    <PropertyColumn Property="user => user.Name" />
+    <PropertyColumn Property="user => user.Email" />
+    <PropertyColumn Property="user => user.Password" />
+    <PropertyColumn Property="user => user.RememberToken" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Href="@($"users/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                <MudIconButton Href="@($"users/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private MyBudgetContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

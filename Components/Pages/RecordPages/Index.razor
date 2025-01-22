@@ -1,0 +1,61 @@
+﻿@page "/records"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@using MyBudget.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+
+<PageTitle>Records</PageTitle>
+
+<h1 class="pt-3">Records</h1>
+
+<MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add" />
+@if (records == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="@records" Dense="true" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Description)">Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Description)">Description</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.FromAccount.Name)">Account</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Amount)">Amount</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Record, object>(x=>x.Date)">Date</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Category">@context.Name</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Temp. (F)">@context.FromAccount.Name</MudTd>
+            <MudTd DataLabel="Amount">@context.Amount</MudTd>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{15, 50, 100}" />
+        </PagerContent>
+    </MudTable>
+}
+@code {
+    private MyBudgetContext context = default!;
+    private List<Record> records;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        records = await context.Record
+        .Include(r => r.Category) // Inclui Category
+        .Include(r => r.User)     // Inclui User, se existir
+        .Include(r => r.FromAccount)
+        .ToListAsync();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

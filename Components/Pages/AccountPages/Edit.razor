@@ -1,0 +1,90 @@
+﻿@page "/accounts/edit"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1 class="pt-3">Contas</h1>
+<hr />
+@if (Account is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm method="post" Model="Account" OnValidSubmit="UpdateAccount" FormName="edit" Enhance>
+        <MudGrid>
+            <MudItem xs="12" sm="7">
+                <MudCard>
+                    <MudCardContent>
+                        <input type="hidden" name="Account.Id" value="@Account.Id" />
+                        <MudTextField id="name" Label="Account name" @bind-Value="Account.Name" />
+                        <MudNumericField Variant="Variant.Text" Label="Initial balance" @bind-Value="Account.InitialBalance"  />
+                        <MudNumericField Variant="Variant.Text" Label="Current balance" @bind-Value="Account.CurrentBalance"  />
+                        <MudColorPicker Label="Color" @bind-Text="Account.Color" ShowToolbar="true" PickerVariant="PickerVariant.Inline" Style="@($"color: {Account.Color};")" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+}
+
+<div>
+    <a href="/accounts">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Account? Account { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Account ??= await context.Account.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Account is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateAccount()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Account!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AccountExists(Account!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/accounts");
+    }
+
+    private bool AccountExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Account.Any(e => e.Id == id);
+    }
+}

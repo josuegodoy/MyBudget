@@ -1,0 +1,80 @@
+﻿@page "/accounts/create"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Account</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Account</h2>
+<hr />
+<EditForm method="post" Model="Account" OnValidSubmit="AddAccount" FormName="edit" Enhance>
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <input type="hidden" name="Account.Id" value="@Account.Id" />
+                    <MudTextField id="name" Label="Account name" @bind-Value="Account.Name" />
+                    <MudNumericField Variant="Variant.Text" Label="Initial balance" @bind-Value="Account.InitialBalance" />
+                    <MudNumericField Variant="Variant.Text" Label="Current balance" @bind-Value="Account.CurrentBalance" />
+                    <MudSelect T="Int32" Label="AccountType" @bind-Value="Account.AccountTypeId">
+                        <MudSelectItem T="Int32" Value=-1 Disabled>Select Account Type</MudSelectItem>
+                        @foreach (var accountType in accountTypes)
+                        {
+                            <MudSelectItem T="Int32" Value="@accountType.Id">@accountType.Id - @accountType.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect T="Int32" Label="Currency" @bind-Value="Account.CurrencyId">
+                        <MudSelectItem T="Int32" Value=-1 Disabled>Select Currency</MudSelectItem>
+                        @foreach (var currency in currencies)
+                        {
+                            <MudSelectItem T="Int32" Value="@currency.Id">@currency.Id - @currency.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect T="Int32" Label="User" @bind-Value="Account.UserId">
+                        <MudSelectItem T="Int32" Value=-1 Disabled>Select User</MudSelectItem>
+                        @foreach (var user in users)
+                        {
+                            <MudSelectItem T="Int32" Value="@user.Id">@user.Id - @user.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Color" @bind-Value="Account.Color" Style="@($"color: {Account.Color};")" InputType="InputType.Color" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+<div>
+    <a href="/accounts">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Account Account { get; set; } = new();
+    private List<AccountType> accountTypes = new List<AccountType>();
+    private List<Currency> currencies = new List<Currency>();
+    private List<User> users = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        accountTypes = await context.AccountType.ToListAsync();
+        currencies = await context.Currency.ToListAsync();
+        users = await context.User.ToListAsync();
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddAccount()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Account.Add(Account);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/accounts");
+    }
+}

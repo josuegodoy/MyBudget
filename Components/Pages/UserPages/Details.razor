@@ -1,0 +1,61 @@
+﻿@page "/users/details"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>User</h2>
+    <hr />
+    @if (user is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudAvatar>@user.Name.Substring(0,1)</MudAvatar>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.body1">@user.Name</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudTooltip Text="Back to List">
+                        <MudIconButton Href="@($"users")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                    </MudTooltip>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">@user.Email</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="@($"users/edit?id={@user.Id}")" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                <MudButton Href="@($"users/delete?id={@user.Id}")" Variant="Variant.Filled" Color="Color.Secondary">Delete</MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
+</div>
+
+@code {
+    private User? user;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        user = await context.User.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (user is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

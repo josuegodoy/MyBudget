@@ -1,0 +1,133 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@using MyBudget.Data
+@attribute [Authorize]
+@implements IAsyncDisposable
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+
+<PageTitle>Home</PageTitle>
+
+@if (categorySummaries.Count > 0)
+{
+    string[] stringArray = data
+    .Select(d => d.ToString("F2")) // Formata com 2 casas decimais, se necessário
+    .ToArray();
+
+    var combined = labels.Zip(stringArray, (a, b) => $"{a} - {b}").ToArray();
+
+
+
+    <MudGrid>
+        <MudItem xs="2">
+            <MudCard Outlined="true">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Large" Color="Color.Success" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText>Incomes</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[0]</MudText>
+                </MudCardContent>
+            </MudCard>
+            <MudCard Outlined="true">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Large" Color="Color.Error" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText>Expenses</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[1]</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="6">
+            <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" Width="300px" Height="300px" />
+        </MudItem>
+    </MudGrid>
+
+}
+else
+{
+    <p>No records found.</p>
+}
+
+@code {
+    private MyBudgetContext context = default!;
+    private List<Record> records;
+    private List<CategorySummary> categorySummaries = new();
+    private List<TypeSummary> typeSummaries = new();
+    private List<double> data = new();
+    private List<string> labels = new();
+    private List<string> labelsType = new();
+    private List<double> dataType = new();
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        records = await context.Record
+        .Include(r => r.Category) // Inclui Category
+        .Include(r => r.User)     // Inclui User, se existir
+        .Include(r => r.FromAccount)
+        .ToListAsync();
+
+        // Consulta para agrupar e somar valores por categoria
+        categorySummaries = await context.Record
+            .Include(r => r.Category) // Inclui os dados da Category
+            .GroupBy(r => r.Category.Name) // Agrupa por nome da categoria
+            .Select(g => new CategorySummary
+                {
+                    CategoryName = g.Key,
+                    TotalAmount = g.Sum(r => r.Amount)
+
+                })
+            .ToListAsync();
+
+        typeSummaries = records
+        .GroupBy(r => r.Type)
+        .Select(g => new TypeSummary
+            {
+                Type = g.Key,
+                TotalAmount = g.Sum(r => r.Amount)
+            })
+        .ToList();
+
+        foreach (var summary in categorySummaries)
+        {
+            data.Add((double)summary.TotalAmount);
+            labels.Add(summary.CategoryName);
+        }
+        foreach (var typeSummary in typeSummaries)
+        {
+            labelsType.Add(typeSummary.Type);
+            dataType.Add((double)typeSummary.TotalAmount);
+        }
+    }
+
+    private class CategorySummary
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+    }
+
+    public class TypeSummary
+    {
+        public string Type { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+    }
+
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

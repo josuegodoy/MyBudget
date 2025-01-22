@@ -1,0 +1,51 @@
+﻿@page "/currencies/create"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Currency</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Currency" OnValidSubmit="AddCurrency" FormName="create" Enhance>
+            <MudGrid>
+                <MudItem xs="12" sm="7">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Name" @bind-Value="Currency.Name" />
+                            <MudTextField Label="Code" @bind-Value="Currency.Code" />
+                            <MudTextField Label="Symbol" @bind-Value="Currency.Symbol" />
+                            <MudTextField Label="Plural Name" @bind-Value="Currency.PluralName" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/currencies">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Currency Currency { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddCurrency()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Currency.Add(Currency);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/currencies");
+    }
+}

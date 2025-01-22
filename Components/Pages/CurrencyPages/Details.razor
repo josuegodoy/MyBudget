@@ -1,0 +1,64 @@
+﻿@page "/currencies/details"
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Currency</h2>
+    <hr />
+    @if (currency is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudAvatar Color="Color.Success" Variant="Variant.Outlined">
+                        @currency.Symbol
+                    </MudAvatar>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.body1">@currency.Name</MudText>
+                    <MudChip T="string"> @currency.Code</MudChip>
+                    <MudChip T="string"> @currency.PluralName</MudChip>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudTooltip Text="Back to List">
+                        <MudIconButton Href="@($"currencies")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                    </MudTooltip>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="@($"/currencies/edit?id={currency.Id}")" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                <MudButton Href="@($"currencies/delete?id={@currency.Id}")" Variant="Variant.Filled" Color="Color.Secondary">Delete</MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
+</div>
+
+@code {
+    private Currency? currency;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        currency = await context.Currency.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (currency is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
