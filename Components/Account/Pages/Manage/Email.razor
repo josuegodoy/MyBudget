@@ -29,14 +29,14 @@
                     <ValidationSummary class="text-danger" role="alert" />
                     @if (isEmailConfirmed)
                     {
-                        <MudTextField Label="Email" value="@email" class="form-control" placeholder="Please enter your email." disabled />
+                        <MudTextField Label="Email" @bind-Value="@email" HelperText="Please enter your email." Disabled="true" />
                     }
                     else
                     {
-                        <MudTextField Label="Email" value="@email" class="form-control" placeholder="Please enter your email." disabled />
+                        <MudTextField Label="Email" @bind-Value="@email" HelperText="Please enter your email." disabled />
                         <MudButton ButtonType="ButtonType.Submit" form="send-verification-form" Variant="Variant.Filled" Color="Color.Primary">Send verification email</MudButton>
                     }
-                    <MudTextField Label="New Email" @bind-Value="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter new email." />
+                    <MudTextField Label="New Email" @bind-Value="Input.NewEmail" autocomplete="email" aria-required="true" HelperText="Please enter new email." />
                     <ValidationMessage For="() => Input.NewEmail" class="text-danger" />
                 </MudCardContent>
                 <MudCardActions>

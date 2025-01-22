@@ -22,8 +22,8 @@
                 <MudCardContent>
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
-                    <MudTextField Label="Username" value="@username" class="form-control" placeholder="Please choose your username." disabled />
-                    <MudTextField Label="Phone Number" @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
+                    <MudTextField Label="Username" @bind-Value="@username" HelperText="Please choose your username." disabled />
+                    <MudTextField Label="Phone Number" @bind-Value="Input.PhoneNumber" HelperText="Please enter your phone number." />
                     <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
                 </MudCardContent>
                 <MudCardActions>
