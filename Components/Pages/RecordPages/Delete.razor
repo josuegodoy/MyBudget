@@ -75,7 +75,7 @@
         context.Record.Remove(record!);
 
         // Ajustar o saldo da conta
-        var account = await context.Account.FindAsync(record!.ToAccountId);
+        var account = await context.Account.FindAsync(record!.FromAccountId);
         if (account != null)
         {
             account.CurrentBalance += record.Type == "Income"

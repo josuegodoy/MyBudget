@@ -92,10 +92,10 @@ else
         }
 
         // Reverta o impacto do registro original
-        if (originalRecord.ToAccountId != updatedRecord.ToAccountId)
+        if (originalRecord.FromAccountId != updatedRecord.FromAccountId)
         {
             // Atualize a conta original
-            var originalAccount = await context.Account.FindAsync(originalRecord.ToAccountId);
+            var originalAccount = await context.Account.FindAsync(originalRecord.FromAccountId);
             if (originalAccount != null)
             {
                 originalAccount.CurrentBalance += originalRecord.Type == "Income"
@@ -104,7 +104,7 @@ else
             }
 
             // Atualize a nova conta
-            var newAccount = await context.Account.FindAsync(updatedRecord.ToAccountId);
+            var newAccount = await context.Account.FindAsync(updatedRecord.FromAccountId);
             if (newAccount != null)
             {
                 newAccount.CurrentBalance += updatedRecord.Type == "Income"
@@ -115,7 +115,7 @@ else
         else
         {
             // Atualize a conta atual
-            var account = await context.Account.FindAsync(updatedRecord.ToAccountId);
+            var account = await context.Account.FindAsync(updatedRecord.FromAccountId);
             if (account != null)
             {
                 // Reverta o impacto do registro original
