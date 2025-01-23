@@ -18,25 +18,32 @@
 }
 else
 {
-    <MudTable Items="@records" Dense="true" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
-        <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Description)">Name</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Description)">Description</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.FromAccount.Name)">Account</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Record, object>(x=>x.Amount)">Amount</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Record, object>(x=>x.Date)">Date</MudTableSortLabel></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Category">@context.Name</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Temp. (F)">@context.FromAccount.Name</MudTd>
-            <MudTd DataLabel="Amount">@context.Amount</MudTd>
-            <MudTd DataLabel="Date">@context.Date</MudTd>
-        </RowTemplate>
+    <MudDataGrid Items="@records" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Single">
+        <ToolBarContent>
+            <MudSpacer />
+            <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Title="Category" Property="records => records.Category.Name" />
+            <PropertyColumn Property="records => records.Description" />
+            <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" CellStyleFunc="@_cellStyleFunc" />
+            <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
+            <TemplateColumn Title="Transaction Date" SortBy="@(records => records.Date)" Sortable="true">
+                <CellTemplate>
+                    <MudDatePicker Editable="false" Disabled @bind-Date="@context.Item.Date" />
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                    <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
         <PagerContent>
-            <MudTablePager PageSizeOptions="new int[]{15, 50, 100}" />
+            <MudDataGridPager T="Record" />
         </PagerContent>
-    </MudTable>
+    </MudDataGrid>
 }
 @code {
     private MyBudgetContext context = default!;
@@ -56,6 +63,15 @@ else
         .Include(r => r.FromAccount)
         .ToListAsync();
     }
+    private Func<Record, string> _cellStyleFunc => x =>
+    {
+        string style = "";
+        if (x.Type == "Income")
+            style += "color:#8CED8C";
+        else if (x.Type == "Expense")
+            style += "color:#EB0030";
+        return style;
+    };
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }
