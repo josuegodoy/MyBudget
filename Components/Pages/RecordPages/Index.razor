@@ -52,9 +52,19 @@ else
             <PropertyColumn Title="Description" Property="records => records.Description" />
             <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
             <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
-            <TemplateColumn CellStyle="width: 200px" Title="Transaction Date" SortBy="@(records => records.Date)" Sortable="true">
+            <TemplateColumn CellStyle="width: 200px" Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
                 <CellTemplate>
-                    <MudTextField @bind-Value="@context.Item.Date" />
+                    <MudTextField @bind-Value="@context.Item.TransactionDate" />
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn CellStyle="width: 200px" Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
+                <CellTemplate>
+                    <MudTextField @bind-Value="@context.Item.PaymentDate" />
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn CellStyle="width: 200px" Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
+                <CellTemplate>
+                    <MudTextField @bind-Value="@context.Item.BudgetDate" />
                 </CellTemplate>
             </TemplateColumn>
             <TemplateColumn CellStyle="width: 150px">

@@ -19,7 +19,9 @@
                     <MudCard>
                         <MudCardContent>
                             <MudTextField Label="Name" @bind-Value="Record.Name" />
-                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.Date" Placeholder="Select Date" />
+                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.TransactionDate" Placeholder="Select Transaction Date" />
+                            <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="Record.PaymentDate" Placeholder="Select Payment Date" />
+                            <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="Record.BudgetDate" Placeholder="Select Budget Date" />
                             <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
                                 <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
                                 @foreach (var category in categories)

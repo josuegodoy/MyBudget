@@ -25,7 +25,9 @@ else
                             <MudCardContent>
                                 <input type="hidden" name="Record.Id" value="updatedRecord.Id" />
                                 <MudTextField Label="Name" @bind-Value="updatedRecord.Name" />
-                                <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="updatedRecord.Date" Placeholder="Select Date" />
+                                <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="updatedRecord.TransactionDate" Placeholder="Select Transaction Date" />
+                                <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="updatedRecord.PaymentDate" Placeholder="Select Payment Date" />
+                                <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="updatedRecord.BudgetDate" Placeholder="Select Budget Date" />
                                 <MudSelect T="int" Label="Category" @bind-Value="updatedRecord.CategoryId">
                                     @foreach (var category in categories)
                                     {

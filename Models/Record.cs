@@ -7,7 +7,9 @@ namespace MyBudget.Models
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public DateTime? Date { get; set; }
+        public DateTime? TransactionDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
+        public DateTime? BudgetDate { get; set; }
         [DataType(DataType.Currency)]
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; } = 0;
