@@ -4,6 +4,7 @@
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject ISnackbar SnackbarService
+@using System.Globalization
 
 <PageTitle>Create Record</PageTitle>
 
@@ -15,13 +16,15 @@
     <div class="col-md-4">
         <EditForm method="post" Model="Record" OnValidSubmit="AddRecord" FormName="create" Enhance>
             <MudGrid>
-                <MudItem xs="12" sm="7">
+                <MudItem xs="8" sm="3">
                     <MudCard>
                         <MudCardContent>
+                            <MudRadioGroup @bind-Value="Record.Type">
+                                <MudRadio Value="@("Income")">Income</MudRadio>
+                                <MudRadio Value="@("Expense")">Expense</MudRadio>
+                            </MudRadioGroup>
                             <MudTextField Label="Name" @bind-Value="Record.Name" />
-                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.TransactionDate" Placeholder="Select Transaction Date" />
-                            <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="Record.PaymentDate" Placeholder="Select Payment Date" />
-                            <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="Record.BudgetDate" Placeholder="Select Budget Date" />
+                            <MudTextField Label="Description" @bind-Value="Record.Description" />
                             <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
                                 <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
                                 @foreach (var category in categories)
@@ -29,10 +32,6 @@
                                     <MudSelectItem T="Int32" Value="@category.Id">@category.Name</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudRadioGroup @bind-Value="Record.Type">
-                                <MudRadio Value="@("Income")">Income</MudRadio>
-                                <MudRadio Value="@("Expense")">Expense</MudRadio>
-                            </MudRadioGroup>
                             <MudSelect T="Int32" Label="Account" @bind-Value="Record.FromAccountId">
                                 <MudSelectItem T="int" Value="0" Disabled>Select Account</MudSelectItem>
                                 @foreach (var account in accounts)
@@ -40,8 +39,10 @@
                                     <MudSelectItem T="Int32" Value="@account.Id">@account.Name</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudNumericField Label="Amount" @bind-Value="Record.Amount" />
-                            <MudTextField Label="Description" @bind-Value="Record.Description" />
+                            <MudNumericField Label="Amount" @bind-Value="Record.Amount" HideSpinButtons="true" Immediate="false" Format="N2" Culture="@_br" />
+                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.TransactionDate" Placeholder="Select Transaction Date" />
+                            <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="Record.PaymentDate" Placeholder="Select Payment Date" />
+                            <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="Record.BudgetDate" Placeholder="Select Budget Date" />
                         </MudCardContent>
                         <MudCardActions>
                             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
@@ -64,11 +65,13 @@
     private List<Account> accounts = new List<Account>();
     private List<User> users = new List<User>();
 
+    public CultureInfo _br = CultureInfo.GetCultureInfo("pt-BR");
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        categories = await context.Category.ToListAsync();
-        accounts = await context.Account.ToListAsync();
+        categories = await context.Category.OrderBy(c => c.Name).ToListAsync();
+        accounts = await context.Account.OrderBy(a => a.Name).ToListAsync();
         users = await context.User.ToListAsync();
     }
 

@@ -20,26 +20,33 @@ else
         <div class="col-md-4">
             <EditForm method="post" Model="updatedRecord" OnValidSubmit="UpdateRecord" FormName="edit" Enhance>
                 <MudGrid>
-                    <MudItem xs="12" sm="7">
+                    <MudItem xs="8" sm="3">
                         <MudCard>
                             <MudCardContent>
                                 <input type="hidden" name="Record.Id" value="updatedRecord.Id" />
+                                <MudRadioGroup @bind-Value="updatedRecord.Type">
+                                    <MudRadio Value="@("Income")">Income</MudRadio>
+                                    <MudRadio Value="@("Expense")">Expense</MudRadio>
+                                </MudRadioGroup>
                                 <MudTextField Label="Name" @bind-Value="updatedRecord.Name" />
-                                <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="updatedRecord.TransactionDate" Placeholder="Select Transaction Date" />
-                                <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="updatedRecord.PaymentDate" Placeholder="Select Payment Date" />
-                                <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="updatedRecord.BudgetDate" Placeholder="Select Budget Date" />
+                                <MudTextField Label="Description" @bind-Value="updatedRecord.Description" />
                                 <MudSelect T="int" Label="Category" @bind-Value="updatedRecord.CategoryId">
                                     @foreach (var category in categories)
                                     {
                                         <MudSelectItem T="int" Value="@category.Id">@category.Name</MudSelectItem>
                                     }
                                 </MudSelect>
-                                <MudRadioGroup @bind-Value="updatedRecord.Type">
-                                    <MudRadio Value="@("Income")">Income</MudRadio>
-                                    <MudRadio Value="@("Expense")">Expense</MudRadio>
-                                </MudRadioGroup>
+                                <MudSelect T="Int32" Label="Account" @bind-Value="updatedRecord.FromAccountId">
+                                    <MudSelectItem T="int" Value="0" Disabled>Select Account</MudSelectItem>
+                                    @foreach (var account in accounts)
+                                    {
+                                        <MudSelectItem T="Int32" Value="@account.Id">@account.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
                                 <MudNumericField Label="Amount" Variant="Variant.Text" AdornmentColor="Color.Error" @bind-Value="updatedRecord.Amount" />
-                                <MudTextField Label="Description" @bind-Value="updatedRecord.Description" />
+                                <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="updatedRecord.TransactionDate" Placeholder="Select Transaction Date" />
+                                <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="updatedRecord.PaymentDate" Placeholder="Select Payment Date" />
+                                <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="updatedRecord.BudgetDate" Placeholder="Select Budget Date" />
                             </MudCardContent>
                             <MudCardActions>
                                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
@@ -62,12 +69,14 @@ else
 
     private Record updatedRecord = new();
     private List<Category> categories = new List<Category>();
+    private List<Account> accounts = new List<Account>();
 
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
         updatedRecord = await context.Record.FirstOrDefaultAsync(m => m.Id == Id) ?? new Record();
-        categories = await context.Category.ToListAsync();
+        categories = await context.Category.OrderBy(c => c.Name).ToListAsync();
+        accounts = await context.Account.OrderBy(a => a.Name).ToListAsync();
 
         if (updatedRecord is null)
         {
