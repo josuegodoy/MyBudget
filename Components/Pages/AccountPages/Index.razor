@@ -9,10 +9,10 @@
 
 <PageTitle>Accounts</PageTitle>
 
-<h1 class="pt-3">Accounts</h1>
+<MudText Typo="Typo.h5" class="pt-3"> Accounts</MudText>
 
 
-<MudDataGrid Items="context.Account" Dense="true" Hover="true" Bordered="true"  Style="--mud-palette-surface: transparent">
+<MudDataGrid Items="context.Account" Dense="true" Hover="true" Bordered="true" class="xl-9" Style="--mud-palette-surface: transparent">
     <ToolBarContent>
         <MudSpacer />
         <MudIconButton Variant="Variant.Filled" href="accounts/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
@@ -20,7 +20,7 @@
     <Columns>
         <PropertyColumn Property="account => account.Name" Title="Name" />
         <PropertyColumn Property="account => account.InitialBalance" Title="Initial Balance" Format="C" />
-        <PropertyColumn Property="account => account.CurrentBalance" Title="Current Balance" Format="C" />
+        <PropertyColumn Property="account => account.CurrentBalance" Title="Current Balance" Format="C" CellStyleFunc="@_cellStyleFunc" />
              <TemplateColumn Title="Color">
             <CellTemplate>
                 <MudChip T="string" Style="@($"background-color:{@context.Item.Color};")" Color="Color.Dark">@context.Item.Name</MudChip>
@@ -45,6 +45,15 @@
     {
         context = DbFactory.CreateDbContext();
     }
+    private Func<Account, string> _cellStyleFunc => x =>
+    {
+        string style = "";
+        if (x.CurrentBalance > 0)
+            style += "color:#8CED8C";
+        else if (x.CurrentBalance < 0)
+            style += "color:#EB0030";
+        return style;
+    };
 
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();

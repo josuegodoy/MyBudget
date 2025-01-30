@@ -4,12 +4,13 @@
 @using Microsoft.EntityFrameworkCore
 @using MyBudget.Models
 @using MyBudget.Data
+@using MudBlazor.Services
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 
 <PageTitle>Records</PageTitle>
 
-<h1 class="pt-3">Records</h1>
+<MudText Typo="Typo.h5" class="pt-3">Records</MudText>
 
 @if (records == null)
 {
@@ -17,67 +18,129 @@
 }
 else
 {
-    <MudDataGrid Items="@records" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Single" Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu" FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive">
-        <ToolBarContent>
-            <MudSpacer />
-            <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
-        </ToolBarContent>
-        <Columns>
-            <PropertyColumn Title="Type" Property="records => records.Type" />
-            <PropertyColumn Title="Category" Property="records => records.Category.Name">
-                <FilterTemplate>
-                    <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small" />
-                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
-                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                                Style="width:150px">
-                        <MudStack Spacing="0">
-                            <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Value="@_selectAll" ValueChanged="@SelectAll" />
-                            <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
-                                @foreach (var category in _uniqueCategories)
-                                {
-                                    <MudCheckBox T="bool" Label="@category" Size="@Size.Small"
-                                                 Value="@(_selectedCategories.Contains(category))"
-                                                 ValueChanged="@((value) => SelectedCategoryChanged(value, category))" />
-                                }
-                            </MudStack>
-                            <MudStack Row="true">
-                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
-                            </MudStack>
-                        </MudStack>
-                    </MudPopover>
-                </FilterTemplate>
-            </PropertyColumn>
-            <PropertyColumn Title="Name" Property="records => records.Name" />
-            <PropertyColumn Title="Description" Property="records => records.Description" />
-            <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
-            <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
-            <TemplateColumn CellStyle="width: 200px" Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
-                <CellTemplate>
-                    <MudTextField @bind-Value="@context.Item.TransactionDate" />
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn CellStyle="width: 200px" Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
-                <CellTemplate>
-                    <MudTextField @bind-Value="@context.Item.PaymentDate" />
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn CellStyle="width: 200px" Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
-                <CellTemplate>
-                    <MudTextField @bind-Value="@context.Item.BudgetDate" />
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn CellStyle="width: 150px">
-                <CellTemplate >
-                    <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
-                    <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
-        <PagerContent>
-            <MudDataGridPager T="Record" />
-        </PagerContent>
-    </MudDataGrid>
+    @*Filtros Globais*@
+    <MudPaper Class="d-inline-flex align-center py-6">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField Label="Search" @bind-Value="_searchText" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnInput="ApplyGlobalFilter" />
+            </MudItem>
+            <MudItem xs="6" sm="3" md="2">
+                <MudSelect Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var category in _uniqueCategories)
+                    {
+                        <MudSelectItem Value="@category">@category</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" sm="3" md="2">
+                <MudSelect Label="Account" @bind-Value="_selectedAccount" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var account in _uniqueAccounts)
+                    {
+                        <MudSelectItem Value="@account">@account</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" sm="3" md="2">
+                <MudSelect Label="Type" @bind-Value="_selectedType" Variant="Variant.Outlined" Clearable="true">
+                    <MudSelectItem Value="@("Income")">Income</MudSelectItem>
+                    <MudSelectItem Value="@("Expense")">Expense</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudDateRangePicker Label="Transaction Date Range" @bind-DateRange="_dateRange" CloseOnSelection="false" ValueChanged="OnDateRangeChanged" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1" DateFormat="yyyy/MM" />
+
+            </MudItem>
+            <MudItem xs="6" sm="4" md="4" Class="d-flex align-items-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyGlobalFilter">Apply Filters</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="ClearGlobalFilters">Clear</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudBreakpointProvider>
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Single" ColumnResizeMode="ResizeMode.Column" Width="100%">
+                    <ToolBarContent>
+                        <MudSpacer />
+                        <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Title="Category" Property="records => records.Category.Name" />
+                        <PropertyColumn Title="Name" Property="records => records.Name" />
+                        <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
+                        <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
+                        <TemplateColumn Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
+                            <CellTemplate>
+                                <MudTextField @bind-Value="@context.Item.TransactionDate" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
+                            <CellTemplate>
+                                <MudTextField @bind-Value="@context.Item.PaymentDate" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
+                            <CellTemplate>
+                                <MudTextField @bind-Value="@context.Item.BudgetDate" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn CellStyle="width: 15%">
+                            <CellTemplate>
+                                <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                                <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
+                    </PagerContent>
+                </MudDataGrid>
+        </MudHidden>
+        @*Mobile*@
+
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
+                         Hideable="true" Groupable="true" GroupExpanded="false">
+                <ToolBarContent>
+                    <MudSpacer />
+                    <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Title="Category" Property="records => records.Category.Name" />
+                    <PropertyColumn Title="Name" Property="records => records.Name" Groupable="false" />
+                    <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
+                    <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
+                    <TemplateColumn CellStyle="width: 100%" Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.TransactionDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellStyle="width: 200px" Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.PaymentDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellStyle="width: 200px" Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.BudgetDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellStyle="width: 150px">
+                        <CellTemplate>
+                            <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="Record" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudHidden>
+    </MudBreakpointProvider>
 }
 @code {
     private MyBudgetContext context = default!;
@@ -85,14 +148,62 @@ else
     HashSet<Record> _selectedItems = new();
     HashSet<Record> _filterItems = new();
     private HashSet<string> _uniqueCategories = new();
-    private HashSet<string> _selectedCategories = new();
+    private HashSet<string> _uniqueAccounts = new();
+
+    /* Início Filtro Global */
+    private DateRange _dateRange { get; set; }
+
+    private string _searchText;
+    private string _selectedCategory;
+    private string _selectedAccount;
+    private string _selectedType;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private DateTime? _yearMonth;
+
+    private List<Record> _filteredRecords = new();
+
+    private void ApplyGlobalFilter()
+    {
+        if (_dateRange is not null)
+        {
+            _startDate = _dateRange.Start;
+            _endDate = _dateRange.End;
+        }
+        _filteredRecords = records
+            .Where(r =>
+                (string.IsNullOrWhiteSpace(_searchText) ||
+                    r.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                    r.Description.Contains(_searchText, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(_selectedCategory) || r.Category.Name == _selectedCategory) &&
+                (string.IsNullOrWhiteSpace(_selectedAccount) || r.FromAccount.Name == _selectedAccount) &&
+                (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
+                (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
+                (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
+                (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
+            .ToList();
+    }
+
+    private void ClearGlobalFilters()
+    {
+        _searchText = string.Empty;
+        _selectedCategory = null;
+        _selectedAccount = null;
+        _selectedType = null;
+        _startDate = null;
+        _endDate = null;
+
+        _filteredRecords = records.ToList(); // Restaura a lista completa
+    }
+
+    private void OnDateRangeChanged(DateRange newRange)
+    {
+        ApplyGlobalFilter(); // Atualiza os filtros sempre que o intervalo mudar
+    }
 
 
-    FilterDefinition<Record> _filterDefinition;
+    /* Fim Filtro Global */
 
-    bool _selectAll = true;
-    string _icon = Icons.Material.Outlined.FilterAlt;
-    bool _filterOpen = false;
 
     protected override void OnInitialized()
     {
@@ -108,16 +219,14 @@ else
         .Include(r => r.FromAccount)
         .ToListAsync();
 
-        _selectedItems = records.ToHashSet();
-        _filterItems = records.ToHashSet();
+        _filteredRecords = records.ToList();
+
         // Popula as categorias únicas
         _uniqueCategories = records.Select(r => r.Category.Name).Distinct().OrderBy(name => name).ToHashSet();
-        _selectedCategories = new HashSet<string>(_uniqueCategories);
 
-        _filterDefinition = new FilterDefinition<Record>
-            {
-                FilterFunction = x => _selectedCategories.Contains(x.Category.Name)
-            };
+        // Popula as contas únicas
+        _uniqueAccounts = records.Select(r => r.FromAccount.Name).Distinct().OrderBy(name => name).ToHashSet();
+
     }
     private Func<Record, string> _cellStyleFunc => x =>
     {
@@ -129,68 +238,6 @@ else
         return style;
     };
 
-    void OpenFilter()
-    {
-        _filterOpen = true;
-    }
-
-    private void SelectedChanged(bool value, Record item)
-    {
-        if (value)
-            _selectedItems.Add(item);
-        else
-            _selectedItems.Remove(item);
-
-        if (_selectedItems.Count == records.Count())
-            _selectAll = true;
-        else
-            _selectAll = false;
-    }
-
-    private async Task ClearFilterAsync(FilterContext<Record> context)
-    {
-        _selectedItems = records.ToHashSet();
-        _filterItems = records.ToHashSet();
-        _icon = Icons.Material.Outlined.FilterAlt;
-        await context.Actions.ClearFilterAsync(_filterDefinition);
-        _filterOpen = false;
-    }
-
-    private async Task ApplyFilterAsync(FilterContext<Record> context)
-    {
-        _filterItems = _selectedItems.ToHashSet();
-        _icon = _filterItems.Count == records.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
-        await context.Actions.ApplyFilterAsync(_filterDefinition);
-        _filterOpen = false;
-    }
-
-    private void SelectAll(bool value)
-    {
-        _selectAll = value;
-
-        if (value)
-        {
-            _selectedCategories = new HashSet<string>(_uniqueCategories);
-        }
-        else
-        {
-            _selectedCategories.Clear();
-        }
-    }
-    private void SelectedCategoryChanged(bool value, string category)
-    {
-        if (value)
-        {
-            _selectedCategories.Add(category);
-        }
-        else
-        {
-            _selectedCategories.Remove(category);
-        }
-
-        // Atualiza o botão de "Select All"
-        _selectAll = _selectedCategories.Count == _uniqueCategories.Count;
-    }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

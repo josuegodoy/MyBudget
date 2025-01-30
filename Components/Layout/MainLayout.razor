@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Identity;
 @using MyBudget
 @using MyBudget.Components
+@using MudBlazor.Services
 @inject ISnackbar Snackbar
 @inject ILogger<MainLayout> Logger
 
@@ -12,8 +13,11 @@
 <MudSnackbarProvider />
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3"><MudIcon Icon="@Icons.Material.Filled.AttachMoney" Title="Favorite" />MyBudget</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudText class="pr-3" Color="Color.Warning" Typo="Typo.h5">MyBudget</MudText>
+        <MudAvatar Color="Color.Warning" Variant="Variant.Filled" Size="Size.Medium">
+            <MudIcon Color="Color.Dark" Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Large" />
+        </MudAvatar>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         @if (isAuthenticated)
@@ -25,10 +29,10 @@
             <MudButton Color="Color.Secondary" OnClick="@NavigateToLogin">Login</MudButton>
         }
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+    <MudDrawer @bind-Open="@_open" Breakpoint="Breakpoint.MdAndUp" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="@DrawerVariant.Responsive">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4">
+    <MudMainContent Class="pt-16 px-16" Style="@MudMainContentStyle" MaxWidth="MaxWidth.Medium">
         @Body
     </MudMainContent>
 </MudLayout>
@@ -41,7 +45,7 @@
 </div>
 
 @code {
-    private bool _drawerOpen = true;
+    private bool _open = false;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
     private bool isAuthenticated;
@@ -54,6 +58,11 @@
 
     [Inject]
     private SignInManager<IdentityUser> SignInManager { get; set; } = default!;
+
+    [Inject] private IBrowserViewportService BrowserViewportService { get; set; }
+
+    private string MudMainContentStyle => _open ? "margin-left: 240px; transition: margin 0.3s;" : "margin-left: 0px; transition: margin 0.3s;";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,7 +80,7 @@
 
     private void NavigateToLogout()
     {
-        NavigationManager.NavigateTo("/logout");
+        NavigationManager.NavigateTo("/Logout");
     }
     private void NavigateToLogin()
 
@@ -84,9 +93,10 @@
     }
 
 
-    private void DrawerToggle()
+
+    private void ToggleDrawer()
     {
-        _drawerOpen = !_drawerOpen;
+        _open = !_open;
     }
 
     private void DarkModeToggle()

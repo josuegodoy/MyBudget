@@ -112,6 +112,7 @@ else
                 originalAccount.CurrentBalance += originalRecord.Type == "Income"
                     ? -originalRecord.Amount
                     : originalRecord.Amount;
+                context.Entry(originalAccount).State = EntityState.Detached;
             }
 
             // Atualize a nova conta
@@ -121,6 +122,7 @@ else
                 newAccount.CurrentBalance += updatedRecord.Type == "Income"
                     ? updatedRecord.Amount
                     : -updatedRecord.Amount;
+                context.Entry(newAccount).State = EntityState.Detached;
             }
         }
         else
@@ -138,6 +140,7 @@ else
                 account.CurrentBalance += updatedRecord.Type == "Income"
                     ? updatedRecord.Amount
                     : -updatedRecord.Amount;
+                context.Entry(account).State = EntityState.Detached;
             }
         }
 

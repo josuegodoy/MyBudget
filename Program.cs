@@ -6,6 +6,7 @@ using MyBudget.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MyBudget.Data;
 using MyBudget.Components.Account;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,7 @@ if (string.IsNullOrEmpty(DefaultConnection))
 }
 
 // Configuração do DbContext
-builder.Services.AddDbContextFactory<MyBudgetContext>(options =>
+builder.Services.AddDbContextFactory<MyBudgetContext>(options => 
     options.UseNpgsql(DefaultConnection));
 
 // Configuração de serviços

@@ -4,6 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @using MyBudget.Models
 @using MyBudget.Data
+@using MudBlazor.Services
 @attribute [Authorize]
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
@@ -18,21 +19,31 @@
 
     var combined = labels.Zip(stringArray, (a, b) => $"{a} - {b}").ToArray();
 
-
+    <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
+        @foreach (var account in context.Account.OrderBy(a => a.Name))
+        {
+            <MudCard Style="@($"background-color:{@account.Color}; font-weight: 900; ")" Width="10rem" Height="6rem">
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                    <MudNumericField Format="C2" T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Value="@account.CurrentBalance" />
+                </MudCardContent>
+            </MudCard>
+        }
+    </MudContainer>
 
     <MudGrid>
-        <MudItem xs="2">
+        <MudItem xl="2" md="2" sm="6" xs="12">
             <MudCard Outlined="true">
                 <MudCardHeader>
                     <CardHeaderAvatar>
                         <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Large" Color="Color.Success" />
                     </CardHeaderAvatar>
                     <CardHeaderContent>
-                        <MudText>Incomes</MudText>
+                        <MudText>@labelsType[1]</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[0]</MudText>
+                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[1]</MudText>
                 </MudCardContent>
             </MudCard>
             <MudCard Outlined="true">
@@ -41,23 +52,27 @@
                         <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Large" Color="Color.Error" />
                     </CardHeaderAvatar>
                     <CardHeaderContent>
-                        <MudText>Expenses</MudText>
+                        <MudText>@labelsType[0]</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[1]</MudText>
+                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[0]</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
-        <MudItem xs="6">
-            <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" Width="300px" Height="300px" />
-        </MudItem>
+        <MudBreakpointProvider>
+            <MudHidden Breakpoint="Breakpoint.Xs">
+                <MudItem lg="3" md="6" sm="12">
+                    <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Bottom"  InputData="@data.ToArray()" InputLabels="@combined" />
+                </MudItem>
+            </MudHidden>
+        </MudBreakpointProvider>
     </MudGrid>
 
 }
 else
 {
-    <p>No records found.</p>
+    <p>Loading...</p>
 }
 
 @code {
@@ -93,6 +108,8 @@ else
                     TotalAmount = g.Sum(r => r.Amount)
 
                 })
+                .Where(r => r.CategoryName != "Salary")
+            .OrderByDescending(g => g.TotalAmount)
             .ToListAsync();
 
         typeSummaries = records
@@ -127,6 +144,7 @@ else
         public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
     }
+
 
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
