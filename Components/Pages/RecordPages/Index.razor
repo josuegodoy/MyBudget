@@ -180,7 +180,7 @@ else
                 (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
                 (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
                 (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
-                (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
+                (!_yearMonth.HasValue || r.BudgetDate?.ToShortDateString() == _yearMonth?.ToShortDateString()))
             .ToList();
     }
 
