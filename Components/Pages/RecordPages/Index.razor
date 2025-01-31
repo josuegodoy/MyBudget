@@ -50,7 +50,7 @@ else
                 <MudDateRangePicker Label="Transaction Date Range" @bind-DateRange="_dateRange" CloseOnSelection="false" ValueChanged="OnDateRangeChanged" />
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
-                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1" DateFormat="yyyy/MM" />
+                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1"  />
 
             </MudItem>
             <MudItem xs="6" sm="4" md="4" Class="d-flex align-items-end">
@@ -63,47 +63,47 @@ else
     <MudBreakpointProvider>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Single" ColumnResizeMode="ResizeMode.Column" Width="100%">
-                    <ToolBarContent>
-                        <MudSpacer />
-                        <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
-                    </ToolBarContent>
-                    <Columns>
-                        <PropertyColumn Title="Category" Property="records => records.Category.Name" />
-                        <PropertyColumn Title="Name" Property="records => records.Name" />
-                        <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
-                        <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
-                        <TemplateColumn Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
-                            <CellTemplate>
-                                <MudTextField @bind-Value="@context.Item.TransactionDate" />
-                            </CellTemplate>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
-                            <CellTemplate>
-                                <MudTextField @bind-Value="@context.Item.PaymentDate" />
-                            </CellTemplate>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
-                            <CellTemplate>
-                                <MudTextField @bind-Value="@context.Item.BudgetDate" />
-                            </CellTemplate>
-                        </TemplateColumn>
-                        <TemplateColumn CellStyle="width: 15%">
-                            <CellTemplate>
-                                <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
-                                <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
-                            </CellTemplate>
-                        </TemplateColumn>
-                    </Columns>
-                    <PagerContent>
-                        <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
-                    </PagerContent>
-                </MudDataGrid>
+                <ToolBarContent>
+                    <MudSpacer />
+                    <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Title="Category" Property="records => records.Category.Name" />
+                    <PropertyColumn Title="Name" Property="records => records.Name" />
+                    <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
+                    <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
+                    <TemplateColumn Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.TransactionDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.PaymentDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
+                        <CellTemplate>
+                            <MudTextField @bind-Value="@context.Item.BudgetDate" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellStyle="width: 15%">
+                        <CellTemplate>
+                            <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
+                </PagerContent>
+            </MudDataGrid>
         </MudHidden>
-        @*Mobile*@
 
+        @*Mobile*@
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-                         Hideable="true" Groupable="true" GroupExpanded="false">
+            Hideable="true" Groupable="true" GroupExpanded="false">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
@@ -192,6 +192,7 @@ else
         _selectedType = null;
         _startDate = null;
         _endDate = null;
+        _yearMonth = null;
 
         _filteredRecords = records.ToList(); // Restaura a lista completa
     }
