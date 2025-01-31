@@ -50,7 +50,7 @@ else
                 <MudDateRangePicker Label="Transaction Date Range" @bind-DateRange="_dateRange" CloseOnSelection="false" ValueChanged="OnDateRangeChanged" />
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
-                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1"  />
+                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1" />
 
             </MudItem>
             <MudItem xs="6" sm="4" md="4" Class="d-flex align-items-end">
@@ -95,6 +95,7 @@ else
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
+                    <MudChip Color="Color.Primary"> Total: @_filteredRecords.Sum(r => r.Amount).ToString("C")</MudChip>
                     <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
                 </PagerContent>
             </MudDataGrid>
@@ -103,7 +104,7 @@ else
         @*Mobile*@
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-            Hideable="true" Groupable="true" GroupExpanded="false">
+                         Hideable="true" Groupable="true" GroupExpanded="false">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
