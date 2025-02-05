@@ -6,7 +6,6 @@ using MyBudget.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MyBudget.Data;
 using MyBudget.Components.Account;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 

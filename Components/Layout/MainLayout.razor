@@ -22,11 +22,15 @@
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         @if (isAuthenticated)
         {
-            <MudButton Color="Color.Secondary" OnClick="NavigateToLogout">Logout</MudButton>
+             <MudLink Href="/Account/Logout">
+                Logout
+            </MudLink>
         }
         else
         {
-            <MudButton Color="Color.Secondary" OnClick="@NavigateToLogin">Login</MudButton>
+            <MudLink Href="/Login">
+                Login
+            </MudLink>
         }
     </MudAppBar>
     <MudDrawer @bind-Open="@_open" Breakpoint="Breakpoint.MdAndUp" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="@DrawerVariant.Responsive">
