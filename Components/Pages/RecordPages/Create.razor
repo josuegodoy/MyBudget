@@ -12,48 +12,41 @@
 
 <h2>Record</h2>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Record" OnValidSubmit="AddRecord" FormName="create" Enhance>
-            <MudGrid>
-                <MudItem xs="8" sm="3">
-                    <MudCard>
-                        <MudCardContent>
-                            <MudRadioGroup @bind-Value="Record.Type">
-                                <MudRadio Value="@("Income")">Income</MudRadio>
-                                <MudRadio Value="@("Expense")">Expense</MudRadio>
-                            </MudRadioGroup>
-                            <MudTextField Label="Name" @bind-Value="Record.Name" />
-                            <MudTextField Label="Description" @bind-Value="Record.Description" />
-                            <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
-                                <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
-                                @foreach (var category in categories)
-                                {
-                                    <MudSelectItem T="Int32" Value="@category.Id">@category.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudSelect T="Int32" Label="Account" @bind-Value="Record.FromAccountId">
-                                <MudSelectItem T="int" Value="0" Disabled>Select Account</MudSelectItem>
-                                @foreach (var account in accounts)
-                                {
-                                    <MudSelectItem T="Int32" Value="@account.Id">@account.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudNumericField Label="Amount" @bind-Value="Record.Amount" HideSpinButtons="true" Immediate="false" Format="N2" Culture="@_br" />
-                            <MudDatePicker Label="Transaction Date" Editable="true" @bind-Date="Record.TransactionDate" Placeholder="Select Transaction Date" />
-                            <MudDatePicker Label="Payment Date" Editable="true" @bind-Date="Record.PaymentDate" Placeholder="Select Payment Date" />
-                            <MudDatePicker Label="Budget Date" Editable="true" @bind-Date="Record.BudgetDate" Placeholder="Select Budget Date" />
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-        </EditForm>
-    </div>
-</div>
-
+<EditForm method="post" Model="Record" OnValidSubmit="AddRecord" FormName="create" Enhance>
+    <MudGrid Class="d-xs-inline-flex">
+        <MudItem Class="pt-4" xs="8" sm="4">
+            <MudRadioGroup @bind-Value="Record.Type">
+                <MudRadio Value="@("Income")">Income</MudRadio>
+                <MudRadio Value="@("Expense")">Expense</MudRadio>
+            </MudRadioGroup>
+            <MudTextField Label="Name" @bind-Value="Record.Name" />
+            <MudTextField Label="Description" @bind-Value="Record.Description" />
+            <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
+                <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
+                @foreach (var category in categories)
+                {
+                    <MudSelectItem T="Int32" Value="@category.Id">@category.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem Class="pt-4" xs="8" sm="4">
+            <MudSelect T="Int32" Label="Account" @bind-Value="Record.FromAccountId">
+                <MudSelectItem T="int" Value="0" Disabled>Select Account</MudSelectItem>
+                @foreach (var account in accounts)
+                {
+                    <MudSelectItem T="Int32" Value="@account.Id">@account.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudNumericField Label="Amount" @bind-Value="Record.Amount" HideSpinButtons="true" Immediate="false" Format="N2" Culture="@_br" />
+            <MudDatePicker Label="Transaction Date" @bind-Date="Record.TransactionDate" Placeholder="Select Transaction Date" />
+            <MudDatePicker Label="Payment Date" @bind-Date="Record.PaymentDate" Placeholder="Select Payment Date" />
+            <MudDatePicker Label="Budget Month" HelperText="@Record.BudgetDate?.ToShortDateString()" @bind-Date="Record.BudgetDate" OpenTo="OpenTo.Month" FixDay="1" Placeholder="Select Budget Month" />
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+            </MudCardActions>
+        </MudItem>
+    </MudGrid>
+</EditForm>
 <div>
     <a href="/records">Back to List</a>
 </div>
@@ -81,9 +74,9 @@
         if (Record.CategoryId == -1)
         {
             SnackbarService.Add
-            (
-            @<div>No category selected</div>, Severity.Info
-            );
+        (
+    @<div>No category selected</div>, Severity.Info
+    );
             return;
         }
 

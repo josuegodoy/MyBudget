@@ -22,9 +22,9 @@
     <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
         @foreach (var account in context.Account.OrderBy(a => a.Name))
         {
-            <MudCard Style="@($"background-color:{@account.Color}; font-weight: 900; ")" Width="10rem" Height="6rem">
+            <MudCard Style="@($"background-color:{@account.Color}; font-weight: 800 ")" Width="8rem" Height="6rem">
                 <MudCardContent>
-                    <MudText Typo="Typo.body2" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                    <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
                     <MudNumericField Format="C2" T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Value="@account.CurrentBalance" />
                 </MudCardContent>
             </MudCard>
@@ -60,13 +60,20 @@
                 </MudCardContent>
             </MudCard>
         </MudItem>
-        <MudBreakpointProvider>
-            <MudHidden Breakpoint="Breakpoint.Xs">
-                <MudItem lg="3" md="6" sm="12">
-                    <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Bottom"  InputData="@data.ToArray()" InputLabels="@combined" />
-                </MudItem>
-            </MudHidden>
-        </MudBreakpointProvider>
+        <MudItem xl="5" md="5" sm="6" xs="12">
+            <MudBreakpointProvider>
+                <MudHidden Breakpoint="Breakpoint.Xs">
+                    <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom"  ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() {LineStrokeWidth=10}" />
+                </MudHidden>
+            </MudBreakpointProvider>
+        </MudItem>
+        <MudItem xl="5" md="4" sm="4" xs="12">
+            <MudBreakpointProvider>
+                <MudHidden Breakpoint="Breakpoint.Xs">
+                    <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" />
+                </MudHidden>
+            </MudBreakpointProvider>
+        </MudItem>
     </MudGrid>
 
 }
@@ -77,13 +84,15 @@ else
 
 @code {
     private MyBudgetContext context = default!;
-    private List<Record> records;
+    private List<Record>? records;
     private List<CategorySummary> categorySummaries = new();
     private List<TypeSummary> typeSummaries = new();
     private List<double> data = new();
     private List<string> labels = new();
     private List<string> labelsType = new();
     private List<double> dataType = new();
+    public List<ChartSeries> Series = new List<ChartSeries>();
+    public string[]? XAxisLabels;
 
     protected override void OnInitialized()
     {
@@ -100,7 +109,8 @@ else
 
         // Consulta para agrupar e somar valores por categoria
         categorySummaries = await context.Record
-            .Include(r => r.Category) // Inclui os dados da Category
+            .Include(r => r.Category)
+            .Where(r => r.Type == "Expense")// Inclui os dados da Category
             .GroupBy(r => r.Category.Name) // Agrupa por nome da categoria
             .Select(g => new CategorySummary
                 {
@@ -108,15 +118,16 @@ else
                     TotalAmount = g.Sum(r => r.Amount)
 
                 })
-                .Where(r => r.CategoryName != "Salary")
             .OrderByDescending(g => g.TotalAmount)
+            .Take(10)
             .ToListAsync();
 
         typeSummaries = records
-        .GroupBy(r => r.Type)
+        .GroupBy(r => new { Month = r.BudgetDate?.ToString("MM/yyyy"), r.Type })
         .Select(g => new TypeSummary
             {
-                Type = g.Key,
+                Month = g.Key.Month,
+                Type = g.Key.Type,
                 TotalAmount = g.Sum(r => r.Amount)
             })
         .ToList();
@@ -131,16 +142,35 @@ else
             labelsType.Add(typeSummary.Type);
             dataType.Add((double)typeSummary.TotalAmount);
         }
+        // Criando os rótulos do eixo X (meses únicos ordenados)
+        XAxisLabels = typeSummaries.Select(c => c.Month)
+            .Distinct()
+            .OrderBy(m => DateTime.ParseExact(m, "MM/yyyy", System.Globalization.CultureInfo.InvariantCulture))
+            .ToArray();
+
+        Series = typeSummaries
+                    .GroupBy(c => c.Type)
+                    .Distinct()
+                    .Select(c => new ChartSeries()
+                        {
+                            Name = c.Key,
+                            Data = XAxisLabels
+                                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
+                                        .ToArray()
+                        })
+                        .ToList();
     }
 
     private class CategorySummary
     {
         public string CategoryName { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
     }
 
     public class TypeSummary
     {
+        public string Month { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
     }

@@ -1,17 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @layout AccountLayout
+<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.House">
+    Home
+</MudNavLink>
+<MudText Typo="Typo.h5" class="pt-3"> User Account</MudText>
 
-<h1>Manage your account</h1>
-
-<div>
-    <h4>Change your account settings</h4>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <ManageNavMenu />
-        </div>
-        <div class="col-md-9">
-            @Body
-        </div>
-    </div>
-</div>
+<MudText Typo="Typo.body1">Change your account settings</MudText>
+<ManageNavMenu />
+<MudItem class="col-md-9">
+    @Body
+</MudItem>

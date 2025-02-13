@@ -22,13 +22,13 @@
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         @if (isAuthenticated)
         {
-             <MudLink Href="/Account/Logout">
+            <MudLink Href="/Account/Logout">
                 Logout
             </MudLink>
         }
         else
         {
-            <MudLink Href="/Login">
+            <MudLink Href="/Account/Login">
                 Login
             </MudLink>
         }
@@ -81,22 +81,6 @@
                 LayoutProperties = new LayoutProperties()
             };
     }
-
-    private void NavigateToLogout()
-    {
-        NavigationManager.NavigateTo("/Logout");
-    }
-    private void NavigateToLogin()
-
-    {
-        if (NavigationManager.Uri.Contains("/Account/Login", StringComparison.OrdinalIgnoreCase))
-        {
-            return; // Evita redirecionamento se já estiver na página de login
-        }
-        NavigationManager.NavigateTo("/Account/Login");
-    }
-
-
 
     private void ToggleDrawer()
     {

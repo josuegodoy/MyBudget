@@ -79,5 +79,6 @@ namespace MyBudget.Data
                .HasForeignKey(r => r.AccountTypeId)
                .OnDelete(DeleteBehavior.Cascade);
         }
+
     }
 }
