@@ -96,19 +96,18 @@ else
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
-                    <MudChip Color="Color.Primary">
-                        Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : -r.Amount).ToString("C")
-                    </MudChip>
+                    <MudChip Color="Color.Success">Incomes: @_filteredRecords.Sum(r => r.Type == "Income" ? r.Amount : 0).ToString("C")</MudChip>
+                    <MudChip Color="Color.Error">Expenses: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : 0).ToString("C")</MudChip>
+                    <MudChip Color="Color.Primary">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : -r.Amount).ToString("C")</MudChip>
                     <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
                 </PagerContent>
             </MudDataGrid>
         </MudHidden>
         <!-- #endregion -->
-
         <!-- #region Mobile -->
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-            Hideable="true" Groupable="true" GroupExpanded="false">
+                         Hideable="true" Groupable="true" GroupExpanded="false">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
