@@ -25,7 +25,7 @@
             <MudCard Style="@($"background-color:{@account.Color}; font-weight: 800 ")" Width="8rem" Height="6rem">
                 <MudCardContent>
                     <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
-                    <MudNumericField Format="C2" T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Value="@account.CurrentBalance" />
+                    <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
                 </MudCardContent>
             </MudCard>
         }
@@ -159,6 +159,8 @@ else
                                         .ToArray()
                         })
                         .ToList();
+
+
     }
 
     private class CategorySummary

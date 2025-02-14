@@ -5,8 +5,14 @@
 @using MyBudget.Models
 @using MyBudget.Data
 @using MudBlazor.Services
+@using System;
+@using System.Globalization;
+@using System.Threading;
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionStorage
+
 
 <PageTitle>Records</PageTitle>
 
@@ -22,10 +28,10 @@ else
     <MudPaper Class="d-inline-flex align-center py-6">
         <MudGrid>
             <MudItem xs="12" sm="6" md="4">
-                <MudTextField Label="Search" @bind-Value="_searchText" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnInput="ApplyGlobalFilter" />
+                <MudTextField Label="Search" @bind-Value="_searchText" Variant="Variant.Filled" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnInput="ApplyGlobalFilter" />
             </MudItem>
             <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Outlined" Clearable="true">
+                <MudSelect Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Filled" Clearable="true">
                     @foreach (var category in _uniqueCategories)
                     {
                         <MudSelectItem Value="@category">@category</MudSelectItem>
@@ -33,7 +39,7 @@ else
                 </MudSelect>
             </MudItem>
             <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Account" @bind-Value="_selectedAccount" Variant="Variant.Outlined" Clearable="true">
+                <MudSelect Label="Account" @bind-Value="_selectedAccount" Variant="Variant.Filled" Clearable="true">
                     @foreach (var account in _uniqueAccounts)
                     {
                         <MudSelectItem Value="@account">@account</MudSelectItem>
@@ -41,7 +47,7 @@ else
                 </MudSelect>
             </MudItem>
             <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Type" @bind-Value="_selectedType" Variant="Variant.Outlined" Clearable="true">
+                <MudSelect Label="Type" @bind-Value="_selectedType" Variant="Variant.Filled" Clearable="true">
                     <MudSelectItem Value="@("Income")">Income</MudSelectItem>
                     <MudSelectItem Value="@("Expense")">Expense</MudSelectItem>
                 </MudSelect>
@@ -169,14 +175,14 @@ else
 
     private List<Record> _filteredRecords = new();
 
-    private void ApplyGlobalFilter()
+    private async Task ApplyGlobalFilter()
     {
         if (_dateRange is not null)
         {
             _startDate = _dateRange.Start;
             _endDate = _dateRange.End;
         }
-        _filteredRecords = records
+        _filteredRecords = await context.Record
             .Where(r =>
                 (string.IsNullOrWhiteSpace(_searchText) ||
                     r.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
@@ -186,8 +192,14 @@ else
                 (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
                 (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
                 (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
-                (!_yearMonth.HasValue || r.BudgetDate?.ToShortDateString() == _yearMonth?.ToShortDateString()))
-            .ToList();
+                (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
+            .ToListAsync();
+
+        // Salva os filtros na sessão
+        await SessionStorage.SetAsync("selectedCategory", _selectedCategory);
+        await SessionStorage.SetAsync("selectedAccount", _selectedAccount);
+        await SessionStorage.SetAsync("startDate", _startDate);
+        await SessionStorage.SetAsync("endDate", _endDate);
     }
 
     private void ClearGlobalFilters()
@@ -233,6 +245,19 @@ else
 
         // Popula as contas únicas
         _uniqueAccounts = records.Select(r => r.FromAccount.Name).Distinct().OrderBy(name => name).ToHashSet();
+
+        // Tenta recuperar os filtros salvos
+        var savedCategory = await SessionStorage.GetAsync<string>("selectedCategory");
+        var savedAccount = await SessionStorage.GetAsync<string>("selectedAccount");
+        var savedStartDate = await SessionStorage.GetAsync<DateTime?>("startDate");
+        var savedEndDate = await SessionStorage.GetAsync<DateTime?>("endDate");
+
+        _selectedCategory = savedCategory.Success ? savedCategory.Value : null;
+        _selectedAccount = savedAccount.Success ? savedAccount.Value : null;
+        _startDate = savedStartDate.Success ? savedStartDate.Value : null;
+        _endDate = savedEndDate.Success ? savedEndDate.Value : null;
+
+        await ApplyGlobalFilter();
 
     }
     private Func<Record, string> _cellStyleFunc => x =>
