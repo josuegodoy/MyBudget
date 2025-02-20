@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-
-namespace MyBudget.Models
+﻿namespace MyBudget.Models
 {
     public class Category
     {
@@ -8,7 +6,7 @@ namespace MyBudget.Models
         public string Name { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
         public User? User { get; set; }
-        public DateTime CreatedAt { get; set; } 
+        public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public ICollection<Record>? Records { get; } = new List<Record>();

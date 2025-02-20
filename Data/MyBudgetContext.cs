@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MyBudget.Models;
-using System.Collections.Generic;
 
 namespace MyBudget.Data
 {

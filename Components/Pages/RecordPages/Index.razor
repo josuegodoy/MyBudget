@@ -20,7 +20,12 @@
 
 @if (records == null)
 {
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
+        <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center" Style="height: 100vh;" Spacing="12" Class="mt-16">
+            <MudProgressCircular Color="Color.Success" Indeterminate="true" />
+        </MudGrid>
+    </MudContainer>
+
 }
 else
 {
@@ -113,7 +118,7 @@ else
         <!-- #region Mobile -->
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-                         Hideable="true" Groupable="true" GroupExpanded="false">
+            Hideable="true" Groupable="true" GroupExpanded="false">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
@@ -200,6 +205,7 @@ else
         await SessionStorage.SetAsync("selectedAccount", _selectedAccount);
         await SessionStorage.SetAsync("startDate", _startDate);
         await SessionStorage.SetAsync("endDate", _endDate);
+        await SessionStorage.SetAsync("yearMonth", _yearMonth);
     }
 
     private void ClearGlobalFilters()
@@ -251,15 +257,18 @@ else
         var savedAccount = await SessionStorage.GetAsync<string>("selectedAccount");
         var savedStartDate = await SessionStorage.GetAsync<DateTime?>("startDate");
         var savedEndDate = await SessionStorage.GetAsync<DateTime?>("endDate");
+        var savedYearMonth = await SessionStorage.GetAsync<DateTime?>("yearMonth");
 
         _selectedCategory = savedCategory.Success ? savedCategory.Value : null;
         _selectedAccount = savedAccount.Success ? savedAccount.Value : null;
         _startDate = savedStartDate.Success ? savedStartDate.Value : null;
         _endDate = savedEndDate.Success ? savedEndDate.Value : null;
+        _yearMonth = savedYearMonth.Success ? savedYearMonth.Value : null;
 
         await ApplyGlobalFilter();
 
     }
+
     private Func<Record, string> _cellStyleFunc => x =>
     {
         string style = "";

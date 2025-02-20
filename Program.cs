@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MyBudget.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using MyBudget.Data;
 using MyBudget.Components.Account;
+using MyBudget.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +16,7 @@ if (string.IsNullOrEmpty(DefaultConnection))
 }
 
 // Configuração do DbContext
-builder.Services.AddDbContextFactory<MyBudgetContext>(options => 
+builder.Services.AddDbContextFactory<MyBudgetContext>(options =>
     options.UseNpgsql(DefaultConnection));
 
 // Configuração de serviços

@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyBudget.Models
 {
@@ -15,7 +15,7 @@ namespace MyBudget.Models
         public decimal Amount { get; set; } = 0;
         public string Description { get; set; } = string.Empty;
         public string Type { get; set; }
-        public DateTime CreatedAt { get; set; } 
+        public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public virtual User? User { get; set; }

@@ -1,5 +1,4 @@
-﻿using MyBudget.Data;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace MyBudget.Components.Account

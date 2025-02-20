@@ -5,7 +5,6 @@
 @using MyBudget.Models
 @using MyBudget.Data
 @using MudBlazor.Services
-@attribute [Authorize]
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 
@@ -63,7 +62,7 @@
         <MudItem xl="5" md="5" sm="6" xs="12">
             <MudBreakpointProvider>
                 <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom"  ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() {LineStrokeWidth=10}" />
+                    <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom" ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() {LineStrokeWidth=10}" />
                 </MudHidden>
             </MudBreakpointProvider>
         </MudItem>
@@ -79,7 +78,12 @@
 }
 else
 {
-    <p>Loading...</p>
+    <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
+        <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center" Style="height: 100vh;" Spacing="12" Class="mt-16">
+            <MudProgressCircular Color="Color.Success" Indeterminate="true" />
+        </MudGrid>
+    </MudContainer>
+
 }
 
 @code {
@@ -155,8 +159,8 @@ else
                         {
                             Name = c.Key,
                             Data = XAxisLabels
-                                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
-                                        .ToArray()
+                                            .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
+                                            .ToArray()
                         })
                         .ToList();
 
