@@ -19,7 +19,7 @@
                 <MudRadio Value="@("Income")">Income</MudRadio>
                 <MudRadio Value="@("Expense")">Expense</MudRadio>
             </MudRadioGroup>
-            <MudTextField Label="Name" @bind-Value="Record.Name" />
+            <MudTextField Label="Recurrency" @bind-Value="Record.Name" />
             <MudTextField Label="Description" @bind-Value="Record.Description" />
             <MudSelect T="Int32" Label="Category" @bind-Value="Record.CategoryId">
                 <MudSelectItem T="Int32" Value="-1" Disabled>Select Category</MudSelectItem>
@@ -71,12 +71,24 @@
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddRecord()
     {
+        if (Record.Type == null)
+        {
+            SnackbarService.Add(@<div>No record type selected</div>, Severity.Error);
+            return;
+        }
         if (Record.CategoryId == -1)
         {
-            SnackbarService.Add
-        (
-    @<div>No category selected</div>, Severity.Info
-    );
+            SnackbarService.Add(@<div>No category selected</div>, Severity.Error);
+            return;
+        }
+        if (Record.FromAccountId == 0)
+        {
+            SnackbarService.Add(@<div>Select an account</div>, Severity.Error);
+            return;
+        }
+        if (Record.Amount <= 0)
+        {
+            SnackbarService.Add(@<div>Invalid value on amount field</div>, Severity.Error);
             return;
         }
 

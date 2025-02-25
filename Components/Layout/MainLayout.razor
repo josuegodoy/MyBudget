@@ -14,9 +14,9 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <MudText class="pr-3" Color="Color.Warning" Typo="Typo.h5">MyBudget</MudText>
-        <MudAvatar Color="Color.Warning" Variant="Variant.Filled" Size="Size.Medium">
-            <MudIcon Color="Color.Dark" Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Large" />
+        <MudText class="pr-3" Style="@($"color:{Colors.Cyan.Lighten2}")" Typo="Typo.h5">MyBudget</MudText>
+        <MudAvatar Style="@($"color:{Colors.Cyan.Lighten2}")" Variant="Variant.Outlined" Size="Size.Medium">
+            <MudImage Src="MyBudget_Logo.png"/>
         </MudAvatar>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />

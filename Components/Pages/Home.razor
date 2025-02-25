@@ -21,52 +21,27 @@
     <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
         @foreach (var account in context.Account.OrderBy(a => a.Name))
         {
-            <MudCard Style="@($"background-color:{@account.Color}; font-weight: 800 ")" Width="8rem" Height="6rem">
-                <MudCardContent>
-                    <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
-                    <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
-                </MudCardContent>
-            </MudCard>
+            if (@account.CurrentBalance != 0)
+            {
+                <MudCard Style="@($"background-color:{@account.Color}; font-weight: 800 ")" Width="8rem" Height="6rem">
+                    <MudCardContent>
+                        <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                        <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
+                    </MudCardContent>
+                </MudCard>
+            }
         }
     </MudContainer>
 
     <MudGrid>
-        <MudItem xl="2" md="2" sm="6" xs="12">
-            <MudCard Outlined="true">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Large" Color="Color.Success" />
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText>@labelsType[1]</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[1]</MudText>
-                </MudCardContent>
-            </MudCard>
-            <MudCard Outlined="true">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Large" Color="Color.Error" />
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText>@labelsType[0]</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Style="float: right" Typo="Typo.body1">R$ @dataType[0]</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-        <MudItem xl="5" md="5" sm="6" xs="12">
+        <MudItem xl="8" md="7" sm="6" xs="12">
             <MudBreakpointProvider>
                 <MudHidden Breakpoint="Breakpoint.Xs">
                     <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom" ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() {LineStrokeWidth=10}" />
                 </MudHidden>
             </MudBreakpointProvider>
         </MudItem>
-        <MudItem xl="5" md="4" sm="4" xs="12">
+        <MudItem xl="4" md="5" sm="6" xs="12">
             <MudBreakpointProvider>
                 <MudHidden Breakpoint="Breakpoint.Xs">
                     <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" />
@@ -127,6 +102,7 @@ else
             .ToListAsync();
 
         typeSummaries = records
+        .Where(r => (r.BudgetDate.Value.Month >= DateTime.Now.Month) && (r.BudgetDate.Value.Month <= DateTime.Now.Month + 4) && (r.BudgetDate.Value.Year == DateTime.Now.Year))
         .GroupBy(r => new { Month = r.BudgetDate?.ToString("MM/yyyy"), r.Type })
         .Select(g => new TypeSummary
             {
@@ -159,8 +135,8 @@ else
                         {
                             Name = c.Key,
                             Data = XAxisLabels
-                                            .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
-                                            .ToArray()
+                                                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
+                                                        .ToArray()
                         })
                         .ToList();
 
