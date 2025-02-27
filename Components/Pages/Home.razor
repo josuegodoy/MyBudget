@@ -4,52 +4,53 @@
 @using Microsoft.EntityFrameworkCore
 @using MyBudget.Models
 @using MyBudget.Data
-@using MudBlazor.Services
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 
 <PageTitle>Home</PageTitle>
 
-@if (categorySummaries.Count > 0)
+@if (!isLoading)
 {
-    string[] stringArray = data
-    .Select(d => d.ToString("F2")) // Formata com 2 casas decimais, se necessário
-    .ToArray();
+    if (categorySummaries.Count > 0)
+    {
+        var combined = labels.Zip(data.Select(d => d.ToString("F2")), (a, b) => $"{a} - {b}").ToArray();
 
-    var combined = labels.Zip(stringArray, (a, b) => $"{a} - {b}").ToArray();
-
-    <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
-        @foreach (var account in context.Account.OrderBy(a => a.Name))
-        {
-            if (@account.CurrentBalance != 0)
+        <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
+            @foreach (var account in accounts)
             {
-                <MudCard Style="@($"background-color:{@account.Color}; font-weight: 800 ")" Width="8rem" Height="6rem">
-                    <MudCardContent>
-                        <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
-                        <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
-                    </MudCardContent>
-                </MudCard>
+                if (account.CurrentBalance != 0)
+                {
+                    <MudCard Style="@($"background-color:{account.Color}; font-weight: 800")" Width="8rem" Height="6rem">
+                        <MudCardContent>
+                            <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                            <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
+                        </MudCardContent>
+                    </MudCard>
+                }
             }
-        }
-    </MudContainer>
+        </MudContainer>
 
-    <MudGrid>
-        <MudItem xl="8" md="7" sm="6" xs="12">
-            <MudBreakpointProvider>
+        <MudGrid>
+            <MudItem xl="8" md="7" sm="6" xs="12">
                 <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom" ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() {LineStrokeWidth=10}" />
+                    <MudChart ChartType="ChartType.Line" LegendPosition="Position.Bottom" ChartSeries="@Series" XAxisLabels="@XAxisLabels" ChartOptions="new ChartOptions() { LineStrokeWidth = 10 }" />
                 </MudHidden>
-            </MudBreakpointProvider>
-        </MudItem>
-        <MudItem xl="4" md="5" sm="6" xs="12">
-            <MudBreakpointProvider>
+            </MudItem>
+            <MudItem xl="4" md="5" sm="6" xs="12">
                 <MudHidden Breakpoint="Breakpoint.Xs">
                     <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" />
                 </MudHidden>
-            </MudBreakpointProvider>
-        </MudItem>
-    </MudGrid>
-
+            </MudItem>
+        </MudGrid>
+    }
+    else
+    {
+        <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
+            <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center" Style="height: 100vh;" Spacing="12" Class="mt-16">
+                <MudProgressCircular Color="Color.Success" Indeterminate="true" />
+            </MudGrid>
+        </MudContainer>
+    }
 }
 else
 {
@@ -58,95 +59,96 @@ else
             <MudProgressCircular Color="Color.Success" Indeterminate="true" />
         </MudGrid>
     </MudContainer>
-
 }
 
 @code {
     private MyBudgetContext context = default!;
-    private List<Record>? records;
+    private List<Record> records = new();
     private List<CategorySummary> categorySummaries = new();
     private List<TypeSummary> typeSummaries = new();
     private List<double> data = new();
     private List<string> labels = new();
     private List<string> labelsType = new();
     private List<double> dataType = new();
-    public List<ChartSeries> Series = new List<ChartSeries>();
+    private List<Account> accounts = new();
+    private bool isLoading = true;
+
+    public List<ChartSeries> Series { get; set; } = new();
     public string[]? XAxisLabels;
 
-    protected override void OnInitialized()
-    {
-        context = DbFactory.CreateDbContext();
-    }
     protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
-        records = await context.Record
-        .Include(r => r.Category) // Inclui Category
-        .Include(r => r.User)     // Inclui User, se existir
-        .Include(r => r.FromAccount)
-        .ToListAsync();
+        context = await DbFactory.CreateDbContextAsync();
+        await LoadData();
+        isLoading = false;
+        StateHasChanged();
+    }
 
-        // Consulta para agrupar e somar valores por categoria
-        categorySummaries = await context.Record
+    private async Task LoadData()
+    {
+        records = await context.Record
             .Include(r => r.Category)
-            .Where(r => r.Type == "Expense")// Inclui os dados da Category
-            .GroupBy(r => r.Category.Name) // Agrupa por nome da categoria
+            .Include(r => r.User)
+            .Include(r => r.FromAccount)
+            .ToListAsync();
+
+        accounts = await context.Account.OrderBy(a => a.Name).ToListAsync();
+
+        categorySummaries = await context.Record
+            .Where(r => r.Type == "Expense")
+            .GroupBy(r => r.Category.Name)
             .Select(g => new CategorySummary
                 {
                     CategoryName = g.Key,
                     TotalAmount = g.Sum(r => r.Amount)
-
                 })
             .OrderByDescending(g => g.TotalAmount)
             .Take(10)
             .ToListAsync();
 
         typeSummaries = records
-        .Where(r => (r.BudgetDate.Value.Month >= DateTime.Now.Month) && (r.BudgetDate.Value.Month <= DateTime.Now.Month + 4) && (r.BudgetDate.Value.Year == DateTime.Now.Year))
-        .GroupBy(r => new { Month = r.BudgetDate?.ToString("MM/yyyy"), r.Type })
-        .Select(g => new TypeSummary
-            {
-                Month = g.Key.Month,
-                Type = g.Key.Type,
-                TotalAmount = g.Sum(r => r.Amount)
-            })
-        .ToList();
+            .Where(r => r.BudgetDate.HasValue && r.BudgetDate.Value.Month >= DateTime.Now.Month && r.BudgetDate.Value.Month <= DateTime.Now.Month + 4 && r.BudgetDate.Value.Year == DateTime.Now.Year)
+            .GroupBy(r => new { Month = r.BudgetDate.Value.ToString("MM/yyyy"), r.Type })
+            .Select(g => new TypeSummary
+                {
+                    Month = g.Key.Month,
+                    Type = g.Key.Type,
+                    TotalAmount = g.Sum(r => r.Amount)
+                })
+            .ToList();
 
-        foreach (var summary in categorySummaries)
-        {
-            data.Add((double)summary.TotalAmount);
-            labels.Add(summary.CategoryName);
-        }
-        foreach (var typeSummary in typeSummaries)
-        {
-            labelsType.Add(typeSummary.Type);
-            dataType.Add((double)typeSummary.TotalAmount);
-        }
-        // Criando os rótulos do eixo X (meses únicos ordenados)
-        XAxisLabels = typeSummaries.Select(c => c.Month)
+        data = categorySummaries.Select(s => (double)s.TotalAmount).ToList();
+        labels = categorySummaries.Select(s => s.CategoryName).ToList();
+
+        labelsType = typeSummaries.Select(s => s.Type).ToList();
+        dataType = typeSummaries.Select(s => (double)s.TotalAmount).ToList();
+
+        XAxisLabels = typeSummaries
+            .Select(c => c.Month)
             .Distinct()
             .OrderBy(m => DateTime.ParseExact(m, "MM/yyyy", System.Globalization.CultureInfo.InvariantCulture))
             .ToArray();
 
         Series = typeSummaries
-                    .GroupBy(c => c.Type)
-                    .Distinct()
-                    .Select(c => new ChartSeries()
-                        {
-                            Name = c.Key,
-                            Data = XAxisLabels
-                                                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0)) // Preenche os meses ausentes com 0
-                                                        .ToArray()
-                        })
-                        .ToList();
+            .GroupBy(c => c.Type)
+            .Select(c => new ChartSeries
+                {
+                    Name = c.Key,
+                    Data = XAxisLabels
+                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0))
+                        .ToArray()
+                })
+            .ToList();
+    }
 
-
+    public async ValueTask DisposeAsync()
+    {
+        await context.DisposeAsync();
     }
 
     private class CategorySummary
     {
         public string CategoryName { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
     }
 
@@ -156,8 +158,4 @@ else
         public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
     }
-
-
-
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }
