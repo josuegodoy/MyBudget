@@ -1,28 +1,30 @@
 ﻿@page "/Account/Manage"
-
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using MyBudget.Data
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
 @inject UserManager<IdentityUser> UserManager
 @inject SignInManager<IdentityUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
+
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
 <StatusMessage />
 
-
-<EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+<EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync">
     <MudGrid>
         <MudItem xs="12" sm="7">
             <MudCard>
                 <MudCardContent>
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
-                    <MudTextField Label="Username" @bind-Value="@username" HelperText="Please choose your username." disabled />
+                    <MudTextField Label="Username" @bind-Value="username" HelperText="Please choose your username." Disabled="true" />
                     <MudTextField Label="Phone Number" @bind-Value="Input.PhoneNumber" HelperText="Please enter your phone number." />
                     <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
                 </MudCardContent>
@@ -34,21 +36,16 @@
     </MudGrid>
 </EditForm>
 
-
 @code {
     private IdentityUser user = default!;
     private string? username;
     private string? phoneNumber;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        user = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext!);
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
 
@@ -62,12 +59,13 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                return;
             }
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
     }
 
     private sealed class InputModel

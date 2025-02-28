@@ -6,6 +6,7 @@
 @using MudBlazor.Services
 @inject ISnackbar Snackbar
 @inject ILogger<MainLayout> Logger
+@inject UserManager<IdentityUser> UserManager
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -41,7 +42,6 @@
     </MudMainContent>
 </MudLayout>
 
-
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
@@ -53,6 +53,7 @@
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
     private bool isAuthenticated;
+
 
     [Inject]
     private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
@@ -136,6 +137,8 @@
         true => Icons.Material.Rounded.WbSunny,
         false => Icons.Material.Outlined.DarkMode,
     };
+
+
 }
 
 

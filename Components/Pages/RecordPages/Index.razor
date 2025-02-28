@@ -30,54 +30,60 @@
 else
 {
     @*Filtros Globais*@
-    <MudPaper Class="d-inline-flex align-center py-6">
-        <MudGrid>
-            <MudItem xs="12" sm="6" md="4">
-                <MudTextField Label="Search" @bind-Value="_searchText" Variant="Variant.Filled" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnInput="ApplyGlobalFilter" />
-            </MudItem>
-            <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Filled" Clearable="true">
-                    @foreach (var category in _uniqueCategories)
-                    {
-                        <MudSelectItem Value="@category">@category</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Account" @bind-Value="_selectedAccount" Variant="Variant.Filled" Clearable="true">
-                    @foreach (var account in _uniqueAccounts)
-                    {
-                        <MudSelectItem Value="@account">@account</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="6" sm="3" md="2">
-                <MudSelect Label="Type" @bind-Value="_selectedType" Variant="Variant.Filled" Clearable="true">
-                    <MudSelectItem Value="@("Income")">Income</MudSelectItem>
-                    <MudSelectItem Value="@("Expense")">Expense</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="3" md="3">
-                <MudDateRangePicker Label="Transaction Date Range" @bind-DateRange="_dateRange" CloseOnSelection="false" ValueChanged="OnDateRangeChanged" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudDatePicker Label="Budget Month" HelperText="@_yearMonth?.ToShortDateString()" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1" />
+    <MudPaper Class="d-inline-flex align-center pt-1">
+        <MudStack Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="OnExpandCollapseClick" FullWidth="true">@(_expanded ? "Hide" : "Show Filters")</MudButton>
+            <MudDivider />
+            <MudCollapse Expanded="_expanded">
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField Label="Search" @bind-Value="_searchText" Variant="Variant.Filled" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnInput="ApplyGlobalFilter" />
+                    </MudItem>
+                    <MudItem xs="6" sm="3" md="2">
+                        <MudSelect Label="Category" @bind-Value="_selectedCategory" Variant="Variant.Filled" Clearable="true">
+                            @foreach (var category in _uniqueCategories)
+                            {
+                                <MudSelectItem Value="@category">@category</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6" sm="3" md="2">
+                        <MudSelect Label="Account" @bind-Value="_selectedAccount" Variant="Variant.Filled" Clearable="true">
+                            @foreach (var account in _uniqueAccounts)
+                            {
+                                <MudSelectItem Value="@account">@account</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6" sm="3" md="2">
+                        <MudSelect Label="Type" @bind-Value="_selectedType" Variant="Variant.Filled" Clearable="true">
+                            <MudSelectItem Value="@("Income")">Income</MudSelectItem>
+                            <MudSelectItem Value="@("Expense")">Expense</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="3" md="3">
+                        <MudDateRangePicker Label="Transaction Date Range" @bind-DateRange="_dateRange" CloseOnSelection="false" ValueChanged="OnDateRangeChanged" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudDatePicker Label="Budget Month" @bind-Date="_yearMonth" OpenTo="OpenTo.Month" FixDay="1" />
 
-            </MudItem>
-            <MudItem xs="6" sm="4" md="4" Class="d-flex align-items-end">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyGlobalFilter">Apply Filters</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="ClearGlobalFilters">Clear</MudButton>
-            </MudItem>
-        </MudGrid>
+                    </MudItem>
+                    <MudItem xs="6" sm="4" md="4" Class="d-flex align-items-end">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ApplyGlobalFilter">Apply Filters</MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="ClearGlobalFilters">Clear</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCollapse>
+        </MudStack>
     </MudPaper>
 
     <MudBreakpointProvider>
         <!-- #region Desktop -->
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Single" ColumnResizeMode="ResizeMode.Column" Width="100%">
+            <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Multiple" ColumnResizeMode="ResizeMode.Container" Width="100%">
                 <ToolBarContent>
                     <MudSpacer />
-                    <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
+                    <MudIconButton Variant="Variant.Outlined" href="records/create" Color="Color.Success" Icon="@Icons.Material.Outlined.Add"></MudIconButton>
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Title="Category" Property="records => records.Category.Name" />
@@ -87,31 +93,31 @@ else
                     <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
                     <TemplateColumn Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
                         <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.TransactionDate" />
+                            <MudTextField @bind-Value="@context.Item.TransactionDate" Typo="Typo.subtitle2" ReadOnly/>
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
                         <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.PaymentDate" />
+                            <MudTextField @bind-Value="@context.Item.PaymentDate" Typo="Typo.subtitle2" ReadOnly />
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
                         <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.BudgetDate" />
+                            <MudTextField @bind-Value="@context.Item.BudgetDate" Typo="Typo.subtitle2" ReadOnly/>
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn CellStyle="width: 15%">
                         <CellTemplate>
-                            <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
-                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
+                            <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Icon="material-symbols-outlined/edit_square"></MudIconButton>
+                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Icon="material-symbols-outlined/info"></MudIconButton>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
                     <MudChip Color="Color.Success">Incomes: @_filteredRecords.Sum(r => r.Type == "Income" ? r.Amount : 0).ToString("C")</MudChip>
                     <MudChip Color="Color.Error">Expenses: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : 0).ToString("C")</MudChip>
-                    <MudChip Color="Color.Primary">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : -r.Amount).ToString("C")</MudChip>
-                    <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" />
+                    <MudChip Color="Color.Primary">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? -r.Amount : r.Amount).ToString("C")</MudChip>
+                    <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" PageSizeOptions="new[] {15, 50, 100}" />
                 </PagerContent>
             </MudDataGrid>
         </MudHidden>
@@ -119,7 +125,7 @@ else
         <!-- #region Mobile -->
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-            Hideable="true" Groupable="true" GroupExpanded="false">
+                         Hideable="true" Groupable="true" GroupExpanded="false">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
@@ -161,7 +167,7 @@ else
 }
 @code {
     private MyBudgetContext context = default!;
-    private List<Record> records;
+    private List<Record>? records;
     HashSet<Record> _selectedItems = new();
     HashSet<Record> _filterItems = new();
     private HashSet<string> _uniqueCategories = new();
@@ -169,7 +175,7 @@ else
 
     #region  Início Filtro Global
 
-    private DateRange _dateRange { get; set; }
+    private DateRange? _dateRange { get; set; }
 
     private string? _searchText;
     private string? _selectedCategory;
@@ -179,7 +185,15 @@ else
     private DateTime? _endDate;
     private DateTime? _yearMonth;
 
+
     private List<Record> _filteredRecords = new();
+
+    bool _expanded = false;
+
+    private void OnExpandCollapseClick()
+    {
+        _expanded = !_expanded;
+    }
 
     private async Task ApplyGlobalFilter()
     {
@@ -278,8 +292,8 @@ else
 
 
 
-    //         // Re-renderiza o componente para aplicar os valores carregados
-    //         StateHasChanged();
+            //         // Re-renderiza o componente para aplicar os valores carregados
+            //         StateHasChanged();
         }
     }
     private Func<Record, string> _cellStyleFunc => x =>

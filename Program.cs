@@ -27,6 +27,7 @@ builder.Services.AddRazorComponents()
         options.HandshakeTimeout = TimeSpan.FromSeconds(30);
     });
 
+builder.Services.AddHttpContextAccessor();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();

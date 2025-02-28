@@ -1,12 +1,35 @@
 ﻿@inherits LayoutComponentBase
 @layout AccountLayout
-<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.House">
-    Home
-</MudNavLink>
-<MudText Typo="Typo.h5" class="pt-3"> User Account</MudText>
+<MudGrid Class="d-flex justify-start">
+    <MudItem xs="1" md="2" sm="2" Class="pl-0" Style="margin-left:-40px">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.House">
+                Home
+            </MudNavLink>
+            <MudNavLink Href="accounts" Icon="@Icons.Material.Filled.CreditCard">
+                Accounts
+            </MudNavLink>
+            <MudNavLink Href="categories" Icon="@Icons.Material.Filled.Menu">
+                Categories
+            </MudNavLink>
+            <MudNavLink Href="currencies" Icon="@Icons.Material.Filled.Money">
+                Currencies
+            </MudNavLink>
+            <MudNavLink Href="records" Icon="@Icons.Material.Filled.Receipt">
+                Records
+            </MudNavLink>
+            <MudNavLink Href="account/manage" Icon="@Icons.Material.Filled.Person">
+                User
+            </MudNavLink>
+        </MudNavMenu>
+    </MudItem>
+    <MudItem xs="10">
+        <MudText Typo="Typo.h5" class="pt-3"> User Account</MudText>
 
-<MudText Typo="Typo.body1">Change your account settings</MudText>
-<ManageNavMenu />
-<MudItem class="col-md-9">
-    @Body
-</MudItem>
+        <MudText Typo="Typo.body1">Change your account settings</MudText>
+        <ManageNavMenu />
+        <MudItem class="col-md-9">
+            @Body
+        </MudItem>
+    </MudItem>
+</MudGrid>
