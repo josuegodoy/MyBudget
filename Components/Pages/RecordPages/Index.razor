@@ -12,6 +12,8 @@
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage SessionStorage
+@using MyBudget.Components
+@inject IDialogService DialogService
 
 
 <PageTitle>Records</PageTitle>
@@ -93,7 +95,7 @@ else
                     <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
                     <TemplateColumn Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
                         <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.TransactionDate" Typo="Typo.subtitle2" ReadOnly/>
+                            <MudTextField @bind-Value="@context.Item.TransactionDate" Typo="Typo.subtitle2" ReadOnly />
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
@@ -103,13 +105,13 @@ else
                     </TemplateColumn>
                     <TemplateColumn Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
                         <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.BudgetDate" Typo="Typo.subtitle2" ReadOnly/>
+                            <MudTextField @bind-Value="@context.Item.BudgetDate" Typo="Typo.subtitle2" ReadOnly />
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn CellStyle="width: 15%">
                         <CellTemplate>
                             <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Icon="material-symbols-outlined/edit_square"></MudIconButton>
-                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Icon="material-symbols-outlined/info"></MudIconButton>
+                            <MudIconButton OnClick="@((e) => DetailsUserAsync(context.Item))" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Icon="material-symbols-outlined/info"></MudIconButton>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -124,39 +126,23 @@ else
         <!-- #endregion -->
         <!-- #region Mobile -->
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <MudDataGrid MultiSelection="true" Items="@_filteredRecords" Filterable="true"
-                         Hideable="true" Groupable="true" GroupExpanded="false">
-                <ToolBarContent>
-                    <MudSpacer />
-                    <MudIconButton Variant="Variant.Filled" href="records/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
-                </ToolBarContent>
+            <MudDataGrid MultiSelection="true" Items="@_filteredRecords">
                 <Columns>
+                    <HierarchyColumn T="Record"/>
                     <PropertyColumn Title="Category" Property="records => records.Category.Name" />
-                    <PropertyColumn Title="Name" Property="records => records.Name" Groupable="false" />
+                    <PropertyColumn Title="Description" Property="records => records.Description" Groupable="false" />
                     <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
-                    <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
-                    <TemplateColumn CellStyle="width: 100%" Title="Transaction Date" SortBy="@(records => records.TransactionDate)" Sortable="true">
-                        <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.TransactionDate" />
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn CellStyle="width: 200px" Title="Payment Date" SortBy="@(records => records.PaymentDate)" Sortable="true">
-                        <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.PaymentDate" />
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn CellStyle="width: 200px" Title="Budget Date" SortBy="@(records => records.BudgetDate)" Sortable="true">
-                        <CellTemplate>
-                            <MudTextField @bind-Value="@context.Item.BudgetDate" />
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn CellStyle="width: 150px">
-                        <CellTemplate>
-                            <MudIconButton Href="@($"records/edit?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
-                            <MudIconButton Href="@($"records/details?id={context.Item.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.Pages"></MudIconButton>
-                        </CellTemplate>
-                    </TemplateColumn>
                 </Columns>
+                <ChildRowContent>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText> @context.Item.FromAccount.Name</MudText>
+                            <MudText> @context.Item.TransactionDate </MudText>
+                            <MudText> @context.Item.PaymentDate </MudText>
+                            <MudText> @context.Item.BudgetDate  </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </ChildRowContent>
                 <PagerContent>
                     <MudDataGridPager T="Record" />
                 </PagerContent>
@@ -183,7 +169,7 @@ else
     private string? _selectedType;
     private DateTime? _startDate;
     private DateTime? _endDate;
-    private DateTime? _yearMonth;
+    private DateTime? _yearMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
 
     private List<Record> _filteredRecords = new();
@@ -203,17 +189,17 @@ else
             _endDate = _dateRange.End;
         }
         _filteredRecords = await context.Record
-            .Where(r =>
-                (string.IsNullOrWhiteSpace(_searchText) ||
-                    r.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
-                    r.Description.Contains(_searchText, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrWhiteSpace(_selectedCategory) || r.Category.Name == _selectedCategory) &&
-                (string.IsNullOrWhiteSpace(_selectedAccount) || r.FromAccount.Name == _selectedAccount) &&
-                (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
-                (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
-                (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
-                (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
-            .ToListAsync();
+        .Where(r =>
+        (string.IsNullOrWhiteSpace(_searchText) ||
+        r.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+        r.Description.Contains(_searchText, StringComparison.OrdinalIgnoreCase)) &&
+        (string.IsNullOrWhiteSpace(_selectedCategory) || r.Category.Name == _selectedCategory) &&
+        (string.IsNullOrWhiteSpace(_selectedAccount) || r.FromAccount.Name == _selectedAccount) &&
+        (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
+        (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
+        (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
+        (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
+        .ToListAsync();
 
         // Salva os filtros na sessão
         await SessionStorage.SetAsync("selectedCategory", _selectedCategory);
@@ -292,9 +278,9 @@ else
 
 
 
-            //         // Re-renderiza o componente para aplicar os valores carregados
-            //         StateHasChanged();
         }
+        // Re-renderiza o componente para aplicar os valores carregados
+        StateHasChanged();
     }
     private Func<Record, string> _cellStyleFunc => x =>
     {
@@ -305,6 +291,19 @@ else
             style += "color:#EB0030";
         return style;
     };
+
+    private async Task DetailsUserAsync(Record record)
+    {
+        var parameters = new DialogParameters<Dialog> { { x => x.record, record } };
+
+        var dialog = await DialogService.ShowAsync<Dialog>("Details", parameters);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            StateHasChanged();
+        }
+
+    }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

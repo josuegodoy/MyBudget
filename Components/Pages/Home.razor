@@ -15,20 +15,20 @@
     {
         var combined = labels.Zip(data.Select(d => d.ToString("F2")), (a, b) => $"{a} - {b}").ToArray();
 
-        <MudContainer Class="d-flex flex-wrap flex-grow-1 gap-2 pa-2" style="justify-content: center" Elevation="1">
+        <MudGrid Class="d-inline-flex flex-row flex-shrink-1 gap-4 py-6 justify-center" Elevation="1">
             @foreach (var account in accounts)
             {
                 if (account.CurrentBalance != 0)
                 {
-                    <MudCard Style="@($"background-color:{account.Color}; font-weight: 800")" Width="8rem" Height="6rem">
-                        <MudCardContent>
-                            <MudText Typo="Typo.body1" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
-                            <MudTextField T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" Value="@account.CurrentBalance" />
+                    <MudCard Style="@($"background-color:{account.Color}; font-weight: 800")" Width="6rem" Height="5rem">
+                        <MudCardContent >
+                            <MudText Typo="Typo.body2" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                            <MudTextField  T="decimal" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge"  Value="@account.CurrentBalance" ReadOnly />
                         </MudCardContent>
                     </MudCard>
                 }
             }
-        </MudContainer>
+        </MudGrid>
 
         <MudGrid>
             <MudItem xl="8" md="7" sm="6" xs="12">
@@ -38,7 +38,7 @@
             </MudItem>
             <MudItem xl="4" md="5" sm="6" xs="12">
                 <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" />
+                    <MudChart ChartType="ChartType.Pie" Class="object-center" LegendPosition="Position.Right" InputData="@data.ToArray()" InputLabels="@combined" />
                 </MudHidden>
             </MudItem>
         </MudGrid>
@@ -135,8 +135,8 @@ else
                 {
                     Name = c.Key,
                     Data = XAxisLabels
-                        .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0))
-                        .ToArray()
+                                    .Select(m => Decimal.ToDouble(c.FirstOrDefault(x => x.Month == m)?.TotalAmount ?? 0))
+                                    .ToArray()
                 })
             .ToList();
     }

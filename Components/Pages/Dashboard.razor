@@ -1,0 +1,155 @@
+﻿@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using MyBudget.Models
+@using MyBudget.Data
+@using MudBlazor.Services
+@inject IDbContextFactory<MyBudgetContext> DbFactory
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionStorage
+
+<PageTitle>Dashboard</PageTitle>
+<MudText Typo="Typo.h5" class="pt-3">Dashboard</MudText>
+
+<MudContainer Class="pa-4">
+    <MudGrid Spacing="3">
+        <!-- Filtro Global -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudDatePicker Label="Filtrar por BudgetDate" @bind-Date="selectedBudgetDate" OpenTo="OpenTo.Month" FixDay="1" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudSelect Label="Filtrar por Categoria" @bind-Value="selectedCategory">
+                @foreach (var cat in categories)
+                {
+                    <MudSelectItem Value="@cat">@cat</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ApplyFilters">Apply Filters</MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="ClearGlobalFilters">Clear</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Gráficos -->
+    <MudGrid Class="mt-6">
+        <MudItem xl="8" md="8" sm="8" xs="12">
+            <MudChart ChartType="ChartType.Bar" LegendPosition="Position.Bottom" ChartSeries="@Series" XAxisLabels="@XAxisLabels.ToArray()" ChartOptions="new ChartOptions() { YAxisTicks = 10}" />
+        </MudItem>
+        <MudItem xl="4" md="4" sm="4" xs="12">
+            <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Bottom" InputData="@expenseData.ToArray()" @bind-SelectedIndex="Index" InputLabels="@expenseLabels.ToArray()" />
+            @if (Index >= 0)
+            {
+                <MudText Typo="Typo.h6">@expenseLabels[Index] - R$ @expenseData[Index]</MudText>
+            }
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int Index = -1;
+    private MyBudgetContext context = default!;
+    private List<Record> records = new();
+    private HashSet<string> categories = new();
+    private string? selectedCategory;
+    private DateTime? selectedBudgetDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private List<string> XAxisLabels = new();
+    private List<ChartSeries> Series = new();
+    private List<double> expenseData = new();
+    private List<string> expenseLabels = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        categories = context.Category.Select(c => c.Name).Distinct().OrderBy(name => name).ToHashSet();
+
+        await LoadData();
+    }
+
+    private async Task LoadFilters()
+    {
+        var savedCategory = await SessionStorage.GetAsync<string>("selectedCategory");
+        selectedCategory = savedCategory.Success ? savedCategory.Value : null;
+        var storedDate = await SessionStorage.GetAsync<DateTime>("selectedBudgetDate");
+        selectedBudgetDate = storedDate.Success ? storedDate.Value : null;
+    }
+
+    private async Task ApplyFilters()
+    {
+        await SessionStorage.SetAsync("selectedCategory", selectedCategory);
+        await SessionStorage.SetAsync("selectedBudgetDate", selectedBudgetDate);
+        await LoadData();
+    }
+    private bool _isInitialized = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_isInitialized)
+        {
+            _isInitialized = true;
+            await LoadFilters();
+        }
+    }
+    private async Task LoadData()
+    {
+        var query = context.Record.Include(r => r.Category).AsQueryable(); // Garante que o tipo é IQueryable<Record>
+
+        if (selectedBudgetDate.HasValue)
+            query = query.Where(r => r.BudgetDate.HasValue &&
+                                     r.BudgetDate.Value.Month >= selectedBudgetDate.Value.Month &&
+                                     r.BudgetDate.Value.Month <= (selectedBudgetDate.Value.Month +3) &&
+                                     r.BudgetDate.Value.Year == selectedBudgetDate.Value.Year);
+
+        if (!string.IsNullOrEmpty(selectedCategory))
+            query = query.Where(r => r.Category.Name == selectedCategory);
+
+        records = await query.ToListAsync();
+
+        var groupedData = records
+            .Where(r => r.BudgetDate.HasValue)
+            .GroupBy(r => new { Month = r.BudgetDate.Value.ToString("MM/yyyy"), r.Type })
+            .Select(g => new
+            {
+                Month = g.Key.Month,
+                Type = g.Key.Type,
+                TotalAmount = g.Sum(r => r.Amount)
+            })
+            .ToList();
+
+        XAxisLabels = groupedData.Select(g => g.Month).Distinct().OrderBy(m => DateTime.ParseExact(m, "MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)).ToList();
+
+        Series = new List<ChartSeries>
+        {
+           new ChartSeries {
+    Name = "Expenses",
+    Data = XAxisLabels
+        .Select(m => (double)(groupedData.FirstOrDefault(g => g.Month == m && g.Type == "Expense")?.TotalAmount ?? 0))
+        .ToArray()
+},
+new ChartSeries {
+    Name = "Incomes",
+    Data = XAxisLabels
+        .Select(m => (double)(groupedData.FirstOrDefault(g => g.Month == m && g.Type == "Income")?.TotalAmount ?? 0))
+        .ToArray()
+}
+        };
+
+        var expenseSummary = records
+            .Where(r => r.Type == "Expense")
+            .GroupBy(r => r.Category.Name)
+            .Select(g => new { Category = g.Key, TotalAmount = g.Sum(r => r.Amount) })
+            .OrderByDescending(g => g.TotalAmount)
+            .Take(15)
+            .ToList();
+
+        expenseData = expenseSummary.Select(g => (double)g.TotalAmount).ToList();
+        expenseLabels = expenseSummary.Select(g => g.Category).ToList();
+    }
+
+    private async Task ClearGlobalFilters()
+    {
+        selectedCategory = string.Empty;
+        selectedBudgetDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    }
+}

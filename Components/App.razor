@@ -11,6 +11,26 @@
     <link href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" rel="stylesheet">
     <link rel="icon" type="image/ico" href="MyBudget_Logo.png" />
     <HeadOutlet @rendermode="@RenderModeForPage" />
+    <style>
+        .mud-charts-bar-series{
+           transform: translateX(10px);
+             /* Move os rótulos do eixo Y um pouco para a esquerda */
+        }
+        .mud-charts-gridlines-yaxis {
+           transform: translateX(10px);
+             /* Move os rótulos do eixo Y um pouco para a esquerda */
+        }
+        .mud-charts-yaxis text{
+            padding-right:5px;
+            transform: translateX(10px);
+        }
+
+        .mud-chart-bar{
+            stroke-width: 1rem;
+            max-width: 80%;
+            transform: translateX(5px);
+        }
+    </style>
 </head>
 
 <body>

@@ -1,0 +1,52 @@
+﻿@using MyBudget.Models
+@using MyBudget.Data
+
+@inject ISnackbar Snackbar
+
+<MudDialog Options="new DialogOptions(){FullWidth = true}">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon=@(record.Category?.Icon) Size="Size.Medium" />
+            @record.Description
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Class="d-xs-inline-flex pt-6">
+            <MudItem Class="pt-4" xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Name</MudText>
+                <MudText Typo="Typo.button"> @record.Name</MudText>
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Category</MudText>
+                <MudText Typo="Typo.button"> @record.Category?.Name</MudText>
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Amount</MudText>
+                <MudText Typo="Typo.button"> @record.Amount</MudText>
+            </MudItem>
+            <MudItem Class="pt-4" xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Account</MudText>
+                <MudText Typo="Typo.button"> @record.FromAccount?.Name</MudText>
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Transaction Date</MudText>
+                <MudText Typo="Typo.button"> @record.TransactionDate?.ToShortDateString()</MudText>
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Budget Date</MudText>
+                <MudText Typo="Typo.button"> @record.BudgetDate?.ToShortDateString()</MudText>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Back to List</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Record record { get; set; } = new Record();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void DeleteServer()
+    {
+        //In a real world scenario this bool would probably be a service to delete the item from api/database
+        Snackbar.Add("Server Deleted", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(record.Id));
+    }
+}
