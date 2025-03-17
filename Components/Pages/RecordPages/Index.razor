@@ -82,7 +82,7 @@ else
     <MudBreakpointProvider>
         <!-- #region Desktop -->
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Multiple" ColumnResizeMode="ResizeMode.Container" Width="100%">
+            <MudDataGrid Class="d-xs-inline-flex" Items="@_filteredRecords" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent" SortMode="SortMode.Multiple" ColumnResizeMode="ResizeMode.Container" Width="100%" RowStyleFunc="@_rowStyleFunc">
                 <ToolBarContent>
                     <MudSpacer />
                     <MudIconButton Variant="Variant.Outlined" href="records/create" Color="Color.Success" Icon="@Icons.Material.Outlined.Add"></MudIconButton>
@@ -282,6 +282,14 @@ else
         // Re-renderiza o componente para aplicar os valores carregados
         StateHasChanged();
     }
+
+    private Func<Record, int, string> _rowStyleFunc => (x, i) =>
+       {
+       if (x.PaymentDate.HasValue)
+               return "background-color:#020";
+
+       return "";
+       };
     private Func<Record, string> _cellStyleFunc => x =>
     {
         string style = "";
@@ -291,6 +299,8 @@ else
             style += "color:#EB0030";
         return style;
     };
+
+ 
 
     private async Task DetailsUserAsync(Record record)
     {
