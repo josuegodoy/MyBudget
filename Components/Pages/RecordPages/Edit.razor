@@ -145,6 +145,7 @@ else
         }
 
         // Atualizar o registro no banco de dados
+        updatedRecord.UpdatedAt = DateTime.UtcNow;
         context.Record.Update(updatedRecord);
         await context.SaveChangesAsync();
 

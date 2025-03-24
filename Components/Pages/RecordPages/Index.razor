@@ -128,7 +128,7 @@ else
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudDataGrid MultiSelection="true" Items="@_filteredRecords">
                 <Columns>
-                    <HierarchyColumn T="Record"/>
+                    <HierarchyColumn T="Record" />
                     <PropertyColumn Title="Category" Property="records => records.Category.Name" />
                     <PropertyColumn Title="Description" Property="records => records.Description" Groupable="false" />
                     <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
@@ -244,6 +244,7 @@ else
         .Include(r => r.Category) // Inclui Category
         .Include(r => r.User)     // Inclui User, se existir
         .Include(r => r.FromAccount)
+         .Where(r => r.DeletedAt == null)
         .ToListAsync();
 
         _filteredRecords = records.ToList();
@@ -285,10 +286,10 @@ else
 
     private Func<Record, int, string> _rowStyleFunc => (x, i) =>
        {
-       if (x.PaymentDate.HasValue)
+           if (x.PaymentDate.HasValue)
                return "background-color:#020";
 
-       return "";
+           return "";
        };
     private Func<Record, string> _cellStyleFunc => x =>
     {
@@ -300,7 +301,7 @@ else
         return style;
     };
 
- 
+
 
     private async Task DetailsUserAsync(Record record)
     {

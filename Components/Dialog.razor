@@ -31,6 +31,7 @@
         </MudGrid>
     </DialogContent>
     <DialogActions>
+        <MudButton Href="@($"records/delete?id={@record.Id}")"  Color="Color.Error">Delete</MudButton>
         <MudButton OnClick="Cancel">Back to List</MudButton>
     </DialogActions>
 </MudDialog>
