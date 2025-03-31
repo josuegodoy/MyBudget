@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/home"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
@@ -7,7 +7,7 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
 @if (!isLoading)
 {
@@ -15,7 +15,7 @@
     {
         var combined = labels.Zip(data.Select(d => d.ToString("F2")), (a, b) => $"{a} - {b}").ToArray();
 
-        <MudGrid Class="d-inline-flex flex-row flex-shrink-1 gap-4 py-6 justify-center" Elevation="1">
+       @*  <MudGrid Class="d-inline-flex flex-row flex-shrink-1 gap-4 py-6 justify-center" Elevation="1">
             @foreach (var account in accounts)
             {
                 if (account.CurrentBalance != 0)
@@ -28,7 +28,7 @@
                     </MudCard>
                 }
             }
-        </MudGrid>
+        </MudGrid> *@
 
         <MudGrid>
             <MudItem xl="8" md="7" sm="6" xs="12">

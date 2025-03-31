@@ -11,7 +11,7 @@
 
 <MudText Typo="Typo.h5" class="pt-3"> Accounts</MudText>
 
-
+@* 
 <MudDataGrid Items="context.Account" Dense="true" Hover="true" Bordered="true" class="xl-9" Style="--mud-palette-surface: transparent">
     <ToolBarContent>
         <MudSpacer />
@@ -25,7 +25,7 @@
             <CellTemplate>
                 <MudChip T="string" Style="@($"background-color:{@context.Item.Color};")" Color="Color.Dark">@context.Item.Name</MudChip>
             </CellTemplate>
-            
+
 
         </TemplateColumn>
         <TemplateColumn>
@@ -36,7 +36,27 @@
             </CellTemplate>
         </TemplateColumn>
     </Columns>
-</MudDataGrid>
+</MudDataGrid> *@
+
+<MudGrid Class="d-inline-flex flex-row flex-shrink-1 gap-4 py-6 justify-center" Elevation="1">
+    @foreach (var account in context.Account)
+    {
+        if (account.CurrentBalance != 0)
+        {
+            <MudCard Style="@($"background-color:{account.Color}; font-weight: 800")" Width="12rem" Height="14rem">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="mix-blend-mode: color-dodge;"><b>@account.Name</b></MudText>
+                    <MudTextField T="decimal" Label="Initial Balance" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Value="@account.InitialBalance" ReadOnly />
+                    <MudTextField T="decimal" Label="Current Balance" HideSpinButtons="true" Typo="Typo.body1" Style="mix-blend-mode: color-dodge" Value="@account.CurrentBalance" ReadOnly />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="@($"accounts/edit?id={account.Id}")" Variant="Variant.Text" Color="Color.Primary" Style="mix-blend-mode: color-dodge;">Edit</MudButton>
+                    <MudButton Href="@($"accounts/details?id={account.Id}")" Variant="Variant.Text" Color="Color.Primary" Style="mix-blend-mode: color-dodge;"> Details</MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+    }
+</MudGrid>
 
 @code {
     private MyBudgetContext context = default!;

@@ -1,4 +1,4 @@
-﻿@page "/records"
+﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
@@ -18,7 +18,7 @@
 
 <PageTitle>Records</PageTitle>
 
-<MudText Typo="Typo.h5" class="pt-3">Records</MudText>
+<MudText Typo="Typo.h5" class="pt-3">Expenses</MudText>
 
 @if (records == null)
 {
@@ -118,7 +118,7 @@ else
                 <PagerContent>
                     <MudChip Color="Color.Success">Incomes: @_filteredRecords.Sum(r => r.Type == "Income" ? r.Amount : 0).ToString("C")</MudChip>
                     <MudChip Color="Color.Error">Expenses: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : 0).ToString("C")</MudChip>
-                    <MudChip Color="Color.Primary">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? -r.Amount : r.Amount).ToString("C")</MudChip>
+                    <MudChip Color="Color.Info">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? -r.Amount : r.Amount).ToString("C")</MudChip>
                     <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" PageSizeOptions="new[] {15, 50, 100}" />
                 </PagerContent>
             </MudDataGrid>
@@ -287,7 +287,7 @@ else
     private Func<Record, int, string> _rowStyleFunc => (x, i) =>
        {
            if (x.PaymentDate.HasValue)
-               return "background-color:#020";
+               return "background-color:rgba(0,200,83,0.3)";
 
            return "";
        };
@@ -295,9 +295,9 @@ else
     {
         string style = "";
         if (x.Type == "Income")
-            style += "color:#8CED8C";
+            style += "color:rgba(11,186,131,1)";
         else if (x.Type == "Expense")
-            style += "color:#EB0030";
+            style += "color:rgba(255,64,129,1)";
         return style;
     };
 

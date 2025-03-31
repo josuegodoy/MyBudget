@@ -11,7 +11,7 @@
 
 <MudText Typo="Typo.h5" class="pt-3"> Categories</MudText>
 
-<MudDataGrid Items="context.Category" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent">
+@* <MudDataGrid Items="context.Category" Dense="true" Hover="true" Bordered="true" Style="--mud-palette-surface: transparent">
     <ToolBarContent>
         <MudSpacer />
         <MudIconButton Variant="Variant.Filled" href="categories/create" Color="Color.Success" Icon="@Icons.Material.Filled.Add"></MudIconButton>
@@ -30,7 +30,23 @@
             </CellTemplate>
         </TemplateColumn>
     </Columns>
-</MudDataGrid>
+</MudDataGrid> *@
+
+<MudGrid Class="d-inline-flex flex-row flex-shrink-1 gap-4 py-6 justify-center" Elevation="1">
+    @foreach (var category in context.Category)
+    {
+        <MudCard Width="12rem">
+            <MudCardContent>
+                <MudIcon Icon="@category.Icon" />
+                <MudText Typo="Typo.h6" Color="Color.Primary"><b>@category.Name</b></MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="@($"categories/edit?id={category.Id}")" Variant="Variant.Text" Color="Color.Secondary">Edit</MudButton>
+                <MudButton Href="@($"categories/details?id={category.Id}")" Variant="Variant.Text" Color="Color.Secondary"> Details</MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
+</MudGrid>
 
 @code {
     private MyBudgetContext context = default!;
