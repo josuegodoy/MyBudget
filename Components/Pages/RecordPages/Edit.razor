@@ -60,7 +60,7 @@ else
 }
 
 <div>
-    <a href="/records">Back to List</a>
+    <a href="/">Back to List</a>
 </div>
 
 @code {
@@ -150,6 +150,6 @@ else
         await context.SaveChangesAsync();
 
         // Redirecionar ou exibir feedback
-        NavigationManager.NavigateTo("/records");
+        NavigationManager.NavigateTo("/");
     }
 }

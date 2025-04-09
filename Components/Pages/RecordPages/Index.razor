@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
+
 @using Microsoft.EntityFrameworkCore
 @using MyBudget.Models
 @using MyBudget.Data
@@ -119,7 +120,7 @@ else
                     <MudChip Color="Color.Success">Incomes: @_filteredRecords.Sum(r => r.Type == "Income" ? r.Amount : 0).ToString("C")</MudChip>
                     <MudChip Color="Color.Error">Expenses: @_filteredRecords.Sum(r => r.Type == "Expense" ? r.Amount : 0).ToString("C")</MudChip>
                     <MudChip Color="Color.Info">Total: @_filteredRecords.Sum(r => r.Type == "Expense" ? -r.Amount : r.Amount).ToString("C")</MudChip>
-                    <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" PageSizeOptions="new[] {15, 50, 100}" />
+                    <MudDataGridPager T="Record" Class="align-self-end py-4 flex-1" PageSizeOptions="new[] {10, 30, 50}" />
                 </PagerContent>
             </MudDataGrid>
         </MudHidden>
@@ -169,8 +170,7 @@ else
     private string? _selectedType;
     private DateTime? _startDate;
     private DateTime? _endDate;
-    private DateTime? _yearMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
-
+    private DateTime? _yearMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 01);
 
     private List<Record> _filteredRecords = new();
 
@@ -239,15 +239,27 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine(_yearMonth);
         context = DbFactory.CreateDbContext();
         records = await context.Record
-        .Include(r => r.Category) // Inclui Category
-        .Include(r => r.User)     // Inclui User, se existir
-        .Include(r => r.FromAccount)
-         .Where(r => r.DeletedAt == null)
-        .ToListAsync();
+         .Include(r => r.Category) // Inclui Category
+         .Include(r => r.User)     // Inclui User, se existir
+         .Include(r => r.FromAccount)
+          .Where(r => r.DeletedAt == null)
+         .ToListAsync();
 
-        _filteredRecords = records.ToList();
+        _filteredRecords = await context.Record
+         .Where(r =>
+         (string.IsNullOrWhiteSpace(_searchText) ||
+         r.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+         r.Description.Contains(_searchText, StringComparison.OrdinalIgnoreCase)) &&
+         (string.IsNullOrWhiteSpace(_selectedCategory) || r.Category.Name == _selectedCategory) &&
+         (string.IsNullOrWhiteSpace(_selectedAccount) || r.FromAccount.Name == _selectedAccount) &&
+         (string.IsNullOrWhiteSpace(_selectedType) || r.Type == _selectedType) &&
+         (!_startDate.HasValue || r.TransactionDate >= _startDate) &&
+         (!_endDate.HasValue || r.TransactionDate <= _endDate) &&
+         (!_yearMonth.HasValue || r.BudgetDate == _yearMonth))
+         .ToListAsync();
 
         // Popula as categorias únicas
         _uniqueCategories = records.Select(r => r.Category.Name).Distinct().OrderBy(name => name).ToHashSet();
@@ -275,10 +287,7 @@ else
             _selectedAccount = savedAccount.Success ? savedAccount.Value : null;
             _startDate = savedStartDate.Success ? savedStartDate.Value : null;
             _endDate = savedEndDate.Success ? savedEndDate.Value : null;
-            _yearMonth = savedYearMonth.Success ? savedYearMonth.Value : null;
-
-
-
+            _yearMonth = savedYearMonth.Success ? savedYearMonth.Value : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 01);
         }
         // Re-renderiza o componente para aplicar os valores carregados
         StateHasChanged();

@@ -48,7 +48,7 @@
     </MudGrid>
 </EditForm>
 <div>
-    <a href="/records">Back to List</a>
+    <a href="/">Back to List</a>
 </div>
 
 @code {
@@ -107,6 +107,6 @@
                 : -Record.Amount; // Decrementa para despesas
         }
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/records");
+        NavigationManager.NavigateTo("/");
     }
 }

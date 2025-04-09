@@ -29,7 +29,7 @@
                 </CardHeaderContent>
                 <CardHeaderActions>
                     <MudTooltip Text="Back to List">
-                        <MudIconButton Href="@($"records")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+                        <MudIconButton Href="@($"/")" Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
                     </MudTooltip>
                 </CardHeaderActions>
             </MudCardHeader>
@@ -42,7 +42,7 @@
             </MudCardActions>
         </MudCard>
         <EditForm method="post" Model="record" OnValidSubmit="DeleteRecord" FormName="delete" Enhance>
-            <MudButton href="/records">Cancel</MudButton>
+            <MudButton href="/">Cancel</MudButton>
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
         </EditForm>
     }
