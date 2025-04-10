@@ -1,0 +1,116 @@
+﻿@page "/bulk-update-paymentdate"
+@using MyBudget.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Bulk Update - Payment Date</PageTitle>
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5">Bulk Update Payment Date</MudText>
+
+    <EditForm Model="filterModel" OnValidSubmit="LoadRecords">
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudSelect T="int?" Label="Account" @bind-Value="filterModel.FromAccountId">
+                    <MudSelectItem T="int?" Value="null">Selecione...</MudSelectItem>
+                    @foreach (var acc in fromAccounts)
+                    {
+                        <MudSelectItem T="int?" Value="(int?)acc.Id">@acc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudDatePicker Label="Budget Month" @bind-Date="filterModel.BudgetDate" OpenTo="OpenTo.Month" FixDay="1" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudDatePicker @bind-Date="filterModel.NewPaymentDate" Label="New Payment Date" Required="true" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadRecords">Find Records</MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+
+    @if (records != null && records.Any())
+    {
+        <MudDivider Class="my-4" />
+        <MudText Typo="Typo.h6">Records found: @records.Count()</MudText>
+
+        <MudTable Items="records" Dense="true">
+            <HeaderContent>
+                <MudTh>Recurrence</MudTh>
+                <MudTh>Description</MudTh>
+                <MudTh>Actual Payment Date</MudTh>
+                <MudTh>New Payment Date</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Description</MudTd>
+                <MudTd>@context.PaymentDate?.ToShortDateString()</MudTd>
+                <MudTd>@filterModel.NewPaymentDate?.ToShortDateString()</MudTd>
+            </RowTemplate>
+        </MudTable>
+
+        <MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="UpdatePaymentDates">Apply changes</MudButton>
+    }
+</MudPaper>
+
+@code {
+    private List<Account> fromAccounts = new();
+    private List<Record> records = new();
+
+    private FilterModel filterModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        fromAccounts = await context.Account
+            .Where(a => !a.DeletedAt.HasValue)
+            .OrderBy(a => a.Name)
+            .ToListAsync();
+    }
+
+    private async Task LoadRecords()
+    {
+        using var context = DbFactory.CreateDbContext();
+        records = await context.Record
+            .Where(r =>
+                r.FromAccountId == filterModel.FromAccountId &&
+                r.BudgetDate.HasValue &&
+                (!filterModel.BudgetDate.HasValue || r.BudgetDate.Value.Date == filterModel.BudgetDate.Value.Date) &&
+                !r.DeletedAt.HasValue)
+            .ToListAsync();
+    }
+
+    private async Task UpdatePaymentDates()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        var toUpdate = await context.Record
+            .Where(r =>
+                r.FromAccountId == filterModel.FromAccountId &&
+                r.BudgetDate.HasValue &&
+                (!filterModel.BudgetDate.HasValue || r.BudgetDate.Value.Date == filterModel.BudgetDate.Value.Date) &&
+                !r.DeletedAt.HasValue)
+            .ToListAsync();
+
+        foreach (var record in toUpdate)
+        {
+            record.PaymentDate = filterModel.NewPaymentDate;
+        }
+
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
+    private class FilterModel
+    {
+        public int? FromAccountId { get; set; }
+        public DateTime? BudgetDate { get; set; }
+        public DateTime? NewPaymentDate { get; set; }
+    }
+}

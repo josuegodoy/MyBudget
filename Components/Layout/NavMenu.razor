@@ -1,23 +1,33 @@
 ﻿
-<MudNavMenu>
+<MudNavMenu Bordered="true">
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.House">
         Home
-    </MudNavLink>
-    <MudNavLink Href="accounts" Icon="@Icons.Material.Filled.CreditCard">
-        Accounts
-    </MudNavLink>
-    <MudNavLink Href="categories" Icon="@Icons.Material.Filled.Menu">
-        Categories
-    </MudNavLink>
-    <MudNavLink Href="currencies" Icon="@Icons.Material.Filled.Money">
-        Currencies
     </MudNavLink>
     <MudNavLink Href="dashboard" Icon="@Icons.Material.Filled.BarChart">
         Dashboard
     </MudNavLink>
-    <MudNavLink Href="account/manage" Icon="@Icons.Material.Filled.Person">
-        User
-    </MudNavLink>
+    <MudNavGroup Title="Settings" Expanded="true">
+        <MudNavLink Href="accounts" Icon="@Icons.Material.Filled.CreditCard">
+            Accounts
+        </MudNavLink>
+        <MudNavLink Href="categories" Icon="@Icons.Material.Filled.Menu">
+            Categories
+        </MudNavLink>
+        <MudNavLink Href="currencies" Icon="@Icons.Material.Filled.Money">
+            Currencies
+        </MudNavLink>
+        <MudNavLink Href="account/manage" Icon="@Icons.Material.Filled.Person">
+            User
+        </MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Records" Expanded="true">
+        <MudNavLink Href="bulk-update-paymentdate" Icon="@Icons.Material.Filled.Update">
+            Bulk Update Payment Date
+        </MudNavLink>
+        <MudNavLink Href="recurrence-create" Icon="@Icons.Material.Filled.Loop">
+            Recurrences
+        </MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>
 
 

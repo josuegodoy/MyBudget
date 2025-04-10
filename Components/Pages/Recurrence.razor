@@ -1,0 +1,114 @@
+﻿@page "/recurrence-create"
+@using MyBudget.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<MyBudget.Data.MyBudgetContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>New Recurrence</PageTitle>
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5">New Recurrence</MudText>
+
+    <EditForm Model="recurrenceModel" OnValidSubmit="CreateRecurrence">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="recurrenceModel.Description" Label="Description" Required="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="decimal" @bind-Value="recurrenceModel.Amount" Label="Amount" Required="true" Adornment="Adornment.Start" AdornmentText="R$" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudDatePicker @bind-Value="recurrenceModel.StartDate" Label="Start Date" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudRadioGroup @bind-Value="recurrenceModel.RecurrenceType">
+                    <MudRadio Value="@("monthly")" Color="Color.Primary">Monthly</MudRadio>
+                    <MudRadio Value="@("predefined")" Color="Color.Secondary">Predefined</MudRadio>
+                </MudRadioGroup>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField T="int" Min="2" @bind-Value="recurrenceModel.TotalOccurrences" Label="# of ocurrences" Required="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudSelect T="int?" Label="Category" @bind-Value="recurrenceModel.CategoryId" Required="true">
+                    <MudSelectItem T="int?" Value="null">Select...</MudSelectItem>
+                    @foreach (var cat in categories)
+                    {
+                        <MudSelectItem T="int?" Value="(int?)cat.Id">@cat.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudSelect T="int?" Label="Account" @bind-Value="recurrenceModel.FromAccountId" Required="true">
+                    <MudSelectItem T="int?" Value="null">Select...</MudSelectItem>
+                    @foreach (var acc in accounts)
+                    {
+                        <MudSelectItem T="int?" Value="(int?)acc.Id">@acc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudButton Type="Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateRecurrence">Create recurrence</MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</MudPaper>
+
+@code {
+    private RecurrenceModel recurrenceModel = new();
+    private List<Account> accounts = new();
+    private List<Category> categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        accounts = await context.Account.Where(a => !a.DeletedAt.HasValue).ToListAsync();
+        categories = await context.Category.ToListAsync();
+    }
+
+    private async Task CreateRecurrence()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        for (int i = 0; i < recurrenceModel.TotalOccurrences; i++)
+        {
+            var transactionDate = recurrenceModel.StartDate.AddMonths(i);
+            var budgetDate = new DateTime(transactionDate.Year, transactionDate.Month, 1);
+
+            var newRecord = new Record
+                {
+                    Description = recurrenceModel.Description,
+                    Name = recurrenceModel.RecurrenceType == "predefined" ? $"{i + 1}/{recurrenceModel.TotalOccurrences}" : "Mensal",
+                    Amount = recurrenceModel.Amount,
+                    FromAccountId = recurrenceModel.FromAccountId.Value,
+                    CategoryId = recurrenceModel.CategoryId.Value,
+                    Type = "Expense",
+                    BudgetDate = budgetDate,
+                    TransactionDate = transactionDate,
+                    PaymentDate = null,
+                    CreatedAt = DateTime.UtcNow.AddHours(-3)
+                };
+
+            context.Record.Add(newRecord);
+        }
+
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
+    private class RecurrenceModel
+    {
+        public string Description { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public DateTime StartDate { get; set; } = DateTime.Today;
+        public int TotalOccurrences { get; set; } = 2;
+        public int? CategoryId { get; set; }
+        public int? FromAccountId { get; set; }
+        public string? RecurrenceType { get; set; }
+    }
+}

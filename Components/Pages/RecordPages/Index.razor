@@ -33,7 +33,6 @@
 else
 {
     @*Filtros Globais*@
-    <MudPaper Class="d-inline-flex align-center pt-1">
         <MudStack Spacing="2">
             <MudButton Variant="Variant.Text" OnClick="OnExpandCollapseClick" FullWidth="true">@(_expanded ? "Hide" : "Show Filters")</MudButton>
             <MudDivider />
@@ -78,7 +77,6 @@ else
                 </MudGrid>
             </MudCollapse>
         </MudStack>
-    </MudPaper>
 
     <MudBreakpointProvider>
         <!-- #region Desktop -->
@@ -90,7 +88,7 @@ else
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Title="Category" Property="records => records.Category.Name" />
-                    <PropertyColumn Title="Recurrency" Property="records => records.Name" />
+                    <PropertyColumn Title="Recurrence" Property="records => records.Name" />
                     <PropertyColumn Title="Description" Property="records => records.Description" />
                     <PropertyColumn Title="Amount" Property="x => x.Amount" Format="C" Filterable="false" CellStyleFunc="@_cellStyleFunc" />
                     <PropertyColumn Title="Account" Property="records => records.FromAccount.Name" />
